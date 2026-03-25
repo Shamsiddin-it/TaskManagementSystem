@@ -23,6 +23,11 @@ builder.Services.AddScoped<IAbsenceService, AbsenceService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IDaySummaryService, DaySummaryService>();
 builder.Services.AddScoped<IScheduleEventService, ScheduleEventService>();
+builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+builder.Services.AddScoped<ITimeLogService, TimeLogService>();
+builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
+builder.Services.AddScoped<IUserBadgeService, UserBadgeService>();
+builder.Services.AddScoped<IFocusSessionService, FocusSessionService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<AuthSeeder>();
 

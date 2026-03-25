@@ -39,6 +39,22 @@ internal static class ServiceMappingHelper
         };
     }
 
+    public static GetProjectDto ToGetProjectDto(Project project, GetUserDto employerDto)
+    {
+        return new GetProjectDto
+        {
+            Id = project.Id,
+            Title = project.Title,
+            Description = project.Description,
+            EmployerId = project.EmployerId,
+            Employer = employerDto,
+            Status = project.Status,
+            GlobalDeadline = project.GlobalDeadline,
+            CreatedAt = project.CreatedAt,
+            UpdatedAt = project.UpdatedAt
+        };
+    }
+
     public static GetTeamDto ToGetTeamDto(Team team, GetProjectDto projectDto, GetUserDto? teamLeadDto)
     {
         return new GetTeamDto
@@ -76,6 +92,55 @@ internal static class ServiceMappingHelper
             OrderIndex = task.OrderIndex,
             CreatedAt = task.CreatedAt,
             UpdatedAt = task.UpdatedAt
+        };
+    }
+
+    public static GetTeamDto ToGetTeamDto(Team team, Dictionary<int, Project> projects, Dictionary<int, User> users)
+    {
+        var project = projects[team.ProjectId];
+        var employerDto = users.TryGetValue(project.EmployerId, out var employerUser)
+            ? ToGetUserDto(employerUser)
+            : new GetUserDto { Id = project.EmployerId };
+
+        GetUserDto? teamLeadDto = null;
+        if (team.TeamLeadId.HasValue && users.TryGetValue(team.TeamLeadId.Value, out var teamLeadUser))
+        {
+            teamLeadDto = ToGetUserDto(teamLeadUser);
+        }
+
+        return ToGetTeamDto(team, ToGetProjectDto(project, employerDto), teamLeadDto);
+    }
+
+    public static GetTaskDto ToGetTaskDto(Domain.Entities.Task task, Dictionary<int, Team> teams, Dictionary<int, Project> projects, Dictionary<int, User> users)
+    {
+        var team = teams[task.TeamId];
+        var teamDto = ToGetTeamDto(team, projects, users);
+
+        GetUserDto? assignedToDto = null;
+        if (task.AssignedTo.HasValue && users.TryGetValue(task.AssignedTo.Value, out var assignedUser))
+        {
+            assignedToDto = ToGetUserDto(assignedUser);
+        }
+
+        GetUserDto? createdByDto = null;
+        if (task.CreatedBy.HasValue && users.TryGetValue(task.CreatedBy.Value, out var createdByUser))
+        {
+            createdByDto = ToGetUserDto(createdByUser);
+        }
+
+        return ToGetTaskDto(task, teamDto, assignedToDto, createdByDto);
+    }
+
+    public static GetBadgeDto ToGetBadgeDto(Badge badge)
+    {
+        return new GetBadgeDto
+        {
+            Id = badge.Id,
+            Name = badge.Name,
+            Description = badge.Description,
+            Condition = badge.Condition,
+            IconUrl = badge.IconUrl,
+            CreatedAt = badge.CreatedAt
         };
     }
 }

@@ -26,6 +26,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserSettings> UserSettings => Set<UserSettings>();
     public DbSet<DaySummary> DaySummaries => Set<DaySummary>();
     public DbSet<ScheduleEvent> ScheduleEvents => Set<ScheduleEvent>();
+    public DbSet<FocusSession> FocusSessions => Set<FocusSession>();
     public DbSet<Note> Notes => Set<Note>();
     public DbSet<UserPresence> UserPresences => Set<UserPresence>();
     public DbSet<TaskTemplate> TaskTemplates => Set<TaskTemplate>();
@@ -239,6 +240,20 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(e => e.Task)
+                .WithMany()
+                .HasForeignKey(e => e.TaskId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // FocusSession
+        modelBuilder.Entity<FocusSession>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Domain.Entities.Task>()
                 .WithMany()
                 .HasForeignKey(e => e.TaskId)
                 .OnDelete(DeleteBehavior.SetNull);
