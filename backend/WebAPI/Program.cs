@@ -14,6 +14,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// CORS: Blazor WebAssembly dev origins (see frontend/Properties/launchSettings.json)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("BlazorWasm", policy =>
+    {
+        policy.WithOrigins("http://localhost:5160", "https://localhost:7081")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IInvitationService, InvitationService>();
@@ -112,7 +123,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+app.UseCors("BlazorWasm");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

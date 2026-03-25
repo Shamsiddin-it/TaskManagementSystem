@@ -1,0 +1,166 @@
+@page "/workspace/tasks/{TaskId:int}"
+@attribute [Authorize]
+@layout NexusShellLayout
+@using TaskManager.Web.Models.Api
+@inject TaskManager.Web.Services.Worker.FocusSessionApiService FocusApi
+@inject NavigationManager Nav
+
+<PageTitle>Task @TaskId</PageTitle>
+
+<div class="nx-task-detail">
+    <nav class="nx-breadcrumb nx-muted">Projects <span class="nx-bc-sep">/</span> Infrastructure <span class="nx-bc-sep">/</span> <strong class="nx-text">INF-@TaskId</strong></nav>
+
+    <div class="nx-task-detail-head">
+        <div>
+            <h1 class="nx-page-title">@SessionTitle</h1>
+            <div class="nx-tag-row">
+                <span class="@StatusTagClass">@StatusLabel</span>
+                <span class="nx-tag">@(_priorityText)</span>
+                <span class="nx-tag">@(_teamText)</span>
+            </div>
+        </div>
+        <div class="nx-timer-box">
+            <div class="nx-timer-label">Active session</div>
+            <div class="nx-timer-digits">@TimerDigits</div>
+            <button type="button"
+                    class="nx-btn-danger-outline"
+                    disabled="@_busy"
+                    @onclick="StopTimerAsync">
+                Stop timer
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(FocusApi.LastError))
+    {
+        <div class="nx-alert nx-alert-error" role="alert" style="margin-top: 12px;">
+            API error: @FocusApi.LastError
+        </div>
+    }
+
+    <div class="nx-task-detail-grid">
+        <div class="nx-panel">
+            <h3 class="nx-section-title">Description</h3>
+            <p class="nx-body">
+                @if (!string.IsNullOrWhiteSpace(SessionDescription))
+                {
+                    @SessionDescription
+                }
+                else
+                {
+                    <span class="nx-muted">No description loaded.</span>
+                }
+            </p>
+
+            <h3 class="nx-section-title nx-section-title-spaced">Subtasks</h3>
+            <ul class="nx-checklist">
+                <li class="nx-check-done">Create checkout session endpoint</li>
+                <li class="nx-check-done">Configure webhook URL</li>
+                <li class="nx-check-done">Handle payment_intent.succeeded</li>
+                <li class="nx-check-done">3DS2 challenge UI</li>
+                <li>Write unit tests for signature verification</li>
+                <li>Load test webhook throughput</li>
+            </ul>
+
+            <h3 class="nx-section-title nx-section-title-spaced">Attachments</h3>
+            <div class="nx-attach-row">
+                <span class="nx-file-pill">stripe_specs_v2.pdf · 1.2 MB</span>
+                <span class="nx-file-pill">webhook_handler.ts · 4 KB</span>
+                <button type="button" class="nx-btn-ghost nx-btn-sm">Upload file</button>
+            </div>
+
+            <h3 class="nx-section-title nx-section-title-spaced">Comments</h3>
+            <div class="nx-comment">
+                <div class="nx-comment-meta"><strong>Alec Lawson</strong> · 2h ago</div>
+                <p>Can we add idempotency keys on retries?</p>
+            </div>
+            <div class="nx-comment">
+                <div class="nx-comment-meta"><strong>Jane Doe</strong> · 10m ago</div>
+                <p>Yes — added in branch <code>feat/stripe-idem</code>.</p>
+            </div>
+            <input type="text" class="nx-input" placeholder="Type a message or press '/' for shortcuts…" />
+        </div>
+
+        <aside class="nx-panel nx-panel-narrow">
+            <h3 class="nx-section-title">Attributes</h3>
+            <dl class="nx-attr-list">
+                <dt>Assignee</dt><dd>Jane Doe</dd>
+                <dt>Reporter</dt><dd>Mark K.</dd>
+                <dt>Due</dt><dd>Oct 24, 2024</dd>
+                <dt>Time spent</dt><dd>4h 12m</dd>
+            </dl>
+            <h3 class="nx-section-title nx-section-title-spaced">Activity</h3>
+            <ul class="nx-mini-feed">
+                <li>Started timer</li>
+                <li>Status → In progress</li>
+                <li>Attachment added</li>
+                <li>Task created</li>
+            </ul>
+            <a href="/workspace/today" class="nx-link-back">← Back to today</a>
+        </aside>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int TaskId { get; set; }
+
+    private GetFocusSessionDto? _session;
+    private bool _busy;
+
+    private string SessionTitle => _session?.Task?.Title ?? $"Focus session #{TaskId}";
+    private string? SessionDescription => _session?.Task?.Description;
+
+    private string _priorityText => string.IsNullOrWhiteSpace(_session?.Task?.Priority) ? "Priority" : _session!.Task!.Priority;
+    private string _teamText => _session?.Task?.Team?.Name ?? "Team";
+
+    private string StatusLabel =>
+        _session?.Status switch
+        {
+            FocusSessionStatus.Active => "In progress",
+            FocusSessionStatus.Paused => "Paused",
+            FocusSessionStatus.Completed => "Completed",
+            _ => "Unknown"
+        };
+
+    private string StatusTagClass =>
+        _session?.Status switch
+        {
+            FocusSessionStatus.Active => "nx-tag nx-tag-warn",
+            FocusSessionStatus.Paused => "nx-tag nx-tag-outline",
+            FocusSessionStatus.Completed => "nx-tag nx-tag-success",
+            _ => "nx-tag nx-tag-outline"
+        };
+
+    private string TimerDigits
+    {
+        get
+        {
+            if (_session is null) return "00:00:00";
+            var end = _session.EndedAt ?? DateTime.UtcNow;
+            var span = end - _session.StartedAt;
+            if (span < TimeSpan.Zero) span = TimeSpan.Zero;
+            return span.ToString(@"hh\:mm\:ss");
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _session = await FocusApi.GetByIdAsync(TaskId);
+    }
+
+    private async Task StopTimerAsync()
+    {
+        if (_session is null) return;
+
+        _busy = true;
+        try
+        {
+            await FocusApi.PauseAsync(_session.Id);
+            _session = await FocusApi.GetByIdAsync(_session.Id);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

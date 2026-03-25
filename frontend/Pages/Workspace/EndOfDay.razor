@@ -1,0 +1,116 @@
+@page "/workspace/end-of-day"
+@attribute [Authorize]
+@layout NexusShellLayout
+@using System.Security.Claims
+@using TaskManager.Web.Models.Api
+@inject AuthenticationStateProvider AuthStateProvider
+@inject TaskManager.Web.Services.Worker.DaySummaryApiService DaySummaryApi
+@inject TaskManager.Web.Services.Auth.AuthApiService Auth
+@inject NavigationManager Nav
+
+<PageTitle>End of day</PageTitle>
+
+<div class="nx-wrap-grid">
+    <section class="nx-panel nx-wrap-main">
+        <div class="nx-wrap-head">
+            <div>
+                <h2 class="nx-page-title">End of day wrap-up</h2>
+                <p class="nx-muted" style="display:none;"></p>
+            </div>
+            <span class="nx-pill-success">Shift complete</span>
+        </div>
+
+        <h3 class="nx-section-title">Completed today <span class="nx-muted">(@_tasksCompleted/@_tasksTotal)</span></h3>
+        <ul class="nx-done-list" style="display:none;"></ul>
+
+        <h3 class="nx-section-title nx-section-title-spaced">Tomorrow’s priorities</h3>
+        <label class="nx-field"><span>Top priority</span><input class="nx-input" @bind="_tomorrow1" /></label>
+        <label class="nx-field"><span>Secondary</span><input class="nx-input" @bind="_tomorrow2" /></label>
+        <label class="nx-field"><span>Tertiary</span><input class="nx-input" @bind="_tomorrow3" /></label>
+        <button type="button" class="nx-btn-primary nx-btn-block nx-mt" disabled="@_busy" @onclick="ConfirmAndLogOffAsync">Confirm &amp; log off</button>
+    </section>
+
+    <aside class="nx-panel nx-wrap-side">
+        <div style="display:none;"></div>
+    </aside>
+</div>
+
+@code {
+    private bool _busy;
+    private int _userId;
+    private int? _existingSummaryId;
+
+    private int _tasksCompleted;
+    private int _tasksTotal;
+    private decimal _focusHours;
+    private int _streakDays;
+
+    private string? _tomorrow1;
+    private string? _tomorrow2;
+    private string? _tomorrow3;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        var sub = state.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(sub, out _userId))
+            return;
+
+        var all = await DaySummaryApi.GetAllAsync();
+        var today = all.FirstOrDefault(x => x.UserId == _userId && x.SummaryDate.Date == DateTime.Today);
+        if (today != null)
+        {
+            _existingSummaryId = today.Id;
+            _tasksCompleted = today.TasksCompleted;
+            _tasksTotal = today.TasksTotal;
+            _focusHours = today.FocusHours;
+            _streakDays = today.StreakDays;
+            _tomorrow1 = today.TomorrowPriority1;
+            _tomorrow2 = today.TomorrowPriority2;
+            _tomorrow3 = today.TomorrowPriority3;
+        }
+    }
+
+    private async Task ConfirmAndLogOffAsync()
+    {
+        if (_userId <= 0) return;
+
+        _busy = true;
+        try
+        {
+            if (_existingSummaryId.HasValue)
+            {
+                await DaySummaryApi.UpdateAsync(_existingSummaryId.Value, new UpdateDaySummaryDto
+                {
+                    TomorrowPriority1 = _tomorrow1,
+                    TomorrowPriority2 = _tomorrow2,
+                    TomorrowPriority3 = _tomorrow3
+                });
+            }
+            else
+            {
+                await DaySummaryApi.AddAsync(new CreateDaySummaryDto
+                {
+                    UserId = _userId,
+                    SummaryDate = DateTime.Today,
+                    TasksCompleted = _tasksCompleted,
+                    TasksTotal = _tasksTotal,
+                    FocusHours = _focusHours,
+                    ProductivityScore = 0,
+                    ProductivityGrade = null,
+                    StreakDays = _streakDays,
+                    TomorrowPriority1 = _tomorrow1,
+                    TomorrowPriority2 = _tomorrow2,
+                    TomorrowPriority3 = _tomorrow3
+                });
+            }
+
+            await Auth.LogoutAsync();
+            Nav.NavigateTo("/login", replace: true);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

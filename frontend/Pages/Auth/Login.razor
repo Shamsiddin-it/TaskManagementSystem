@@ -1,0 +1,79 @@
+@page "/login"
+@layout MainLayout
+
+<PageTitle>Sign in — Nexus</PageTitle>
+
+<div class="nx-auth-card">
+    <div class="nx-auth-header">
+        <span class="nx-brand-square nx-brand-square-lg"></span>
+        <h2>Welcome back</h2>
+        <p class="nx-muted">Sign in to your worker workspace.</p>
+    </div>
+
+    <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+        <label class="nx-field">
+            <span>Email</span>
+            <InputText @bind-Value="_model.Email" class="nx-input" autocomplete="username" />
+        </label>
+        <label class="nx-field">
+            <span>Password</span>
+            <InputText type="password" @bind-Value="_model.Password" class="nx-input" autocomplete="current-password" />
+        </label>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="nx-alert">@_error</div>
+        }
+
+        <button type="submit" class="nx-btn-primary nx-btn-block" disabled="@_busy">
+            @(_busy ? "Signing in…" : "Sign in")
+        </button>
+    </EditForm>
+
+    <p class="nx-auth-footer">
+        No account?
+        <a href="/register">Create one</a>
+    </p>
+</div>
+
+@code {
+    private readonly LoginModel _model = new();
+    private string? _error;
+    private bool _busy;
+
+    [Inject]
+    private AuthApiService Auth { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Nav { get; set; } = default!;
+
+    private async Task SubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_model.Email) || string.IsNullOrWhiteSpace(_model.Password))
+        {
+            _error = "Email and password are required.";
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        try
+        {
+            var (ok, msg) = await Auth.LoginAsync(_model.Email, _model.Password);
+            if (ok)
+                Nav.NavigateTo("/workspace/today", replace: true);
+            else
+                _error = msg ?? "Login failed.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private sealed class LoginModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

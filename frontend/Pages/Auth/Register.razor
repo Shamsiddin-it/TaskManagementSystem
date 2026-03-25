@@ -1,0 +1,101 @@
+@page "/register"
+@layout MainLayout
+
+<PageTitle>Register — Nexus</PageTitle>
+
+<div class="nx-auth-card">
+    <div class="nx-auth-header">
+        <span class="nx-brand-square nx-brand-square-lg"></span>
+        <h2>Create account</h2>
+        <p class="nx-muted">Join the workspace (pick your role for testing).</p>
+    </div>
+
+    <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+        <label class="nx-field">
+            <span>Full name</span>
+            <InputText @bind-Value="_model.FullName" class="nx-input" autocomplete="name" />
+        </label>
+        <label class="nx-field">
+            <span>Email</span>
+            <InputText @bind-Value="_model.Email" class="nx-input" autocomplete="email" />
+        </label>
+        <label class="nx-field">
+            <span>Password</span>
+            <InputText type="password" @bind-Value="_model.Password" class="nx-input" autocomplete="new-password" />
+        </label>
+        <label class="nx-field">
+            <span>Role</span>
+            <InputSelect TValue="int" @bind-Value="_model.Role" class="nx-input">
+                <option value="2">Worker</option>
+                <option value="1">Team lead</option>
+                <option value="0">Employer</option>
+            </InputSelect>
+        </label>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="nx-alert">@_error</div>
+        }
+
+        <button type="submit" class="nx-btn-primary nx-btn-block" disabled="@_busy">
+            @(_busy ? "Creating…" : "Create account")
+        </button>
+    </EditForm>
+
+    <p class="nx-auth-footer">
+        Already have an account?
+        <a href="/login">Sign in</a>
+    </p>
+</div>
+
+@code {
+    private readonly RegisterFormModel _model = new();
+    private string? _error;
+    private bool _busy;
+
+    [Inject]
+    private AuthApiService Auth { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Nav { get; set; } = default!;
+
+    private async Task SubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_model.FullName) || string.IsNullOrWhiteSpace(_model.Email) || string.IsNullOrWhiteSpace(_model.Password))
+        {
+            _error = "All fields are required.";
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        try
+        {
+            var req = new RegisterRequest
+            {
+                FullName = _model.FullName.Trim(),
+                Email = _model.Email.Trim(),
+                Password = _model.Password,
+                Role = _model.Role
+            };
+
+            var (ok, msg) = await Auth.RegisterAsync(req);
+            if (ok)
+                Nav.NavigateTo("/workspace/today", replace: true);
+            else
+                _error = msg ?? "Registration failed.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private sealed class RegisterFormModel
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public int Role { get; set; } = 2;
+    }
+}
