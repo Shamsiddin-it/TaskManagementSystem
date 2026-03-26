@@ -3,8 +3,8 @@ public class InsertTaskDto
     public string Title { get; set; } = null!;
     public string? Description { get; set; }
     public int TeamId { get; set; }
-    public int AssignedToId { get; set; }
-    public int CreatedById { get; set; }
+    public string AssignedToId { get; set; } = null!;
+    public string CreatedById { get; set; } = null!;
     public int? SprintId { get; set; }
     public TaskPriority Priority { get; set; } = TaskPriority.Medium;
     public TicketType TicketType { get; set; } = TicketType.Task;
@@ -25,8 +25,8 @@ public class GetTaskDto
     public string Title { get; set; } = null!;
     public string? Description { get; set; }
     public int TeamId { get; set; }
-    public int AssignedToId { get; set; }
-    public int CreatedById { get; set; }
+    public string AssignedToId { get; set; } = null!;
+    public string CreatedById { get; set; } = null!;
     public int? SprintId { get; set; }
     public TaskStatus Status { get; set; }
     public TaskPriority Priority { get; set; }

@@ -21,11 +21,11 @@ public class Task : BaseEntity
     public int TeamId{get;set;}
     // FK на Team. Обязателен.
 
-    public int AssignedToId{get;set;}
+    public string AssignedToId{get;set;} = null!;
     // FK на User — кто выполняет задачу.
     // Обязателен при создании.
 
-    public int CreatedById{get;set;}
+    public string CreatedById{get;set;} = null!;
     // FK на User — кто создал (тим лид).
     // Обязателен. Устанавливается из текущего юзера.
 

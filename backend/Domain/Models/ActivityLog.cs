@@ -8,7 +8,7 @@ public class ActivityLog : BaseEntity
     public int TeamId{get;set;}
     // FK на Team. К какой команде относится событие.
 
-    public int ActorId{get;set;}
+    public string ActorId{get;set;} = null!;
     // FK на User — кто совершил действие.
 
     public ActionType ActionType{get;set;}

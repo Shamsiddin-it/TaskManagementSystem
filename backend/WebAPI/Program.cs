@@ -28,14 +28,25 @@ builder.Services
         options.Password.RequireDigit = true;
         options.Password.RequireUppercase = false;
         options.Password.RequireNonAlphanumeric = false;
-
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
     })
-    .AddRoles<IdentityRole<int>>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<IProjectMemberService, ProjectMemberService>();
+builder.Services.AddScoped<IProjectRiskService, ProjectRiskService>();
+builder.Services.AddScoped<IBudgetService, BudgetService>();
+builder.Services.AddScoped<ITimelineService, TimelineService>();
+builder.Services.AddScoped<IEmployerNotificationService, EmployerNotificationService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IJwtTokenService,JwtTokenService>();
@@ -126,14 +137,67 @@ try
 {
     await using var scope = app.Services.CreateAsyncScope();
     var services = scope.ServiceProvider;
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    var db = services.GetRequiredService<ApplicationDbContext>();
 
     await DefaultRoles.SeedRoles(roleManager);
+    
+    // Ensure tables from the other branch exist (if not handled by migrations)
+    await db.Database.ExecuteSqlRawAsync("""
+        CREATE TABLE IF NOT EXISTS "WorkspaceSettings" (
+            "Id" uuid PRIMARY KEY,
+            "EmployerId" uuid NOT NULL,
+            "OrganizationName" character varying(200) NOT NULL,
+            "OrganizationCode" character varying(50) NOT NULL,
+            "PrimaryContactName" character varying(150) NOT NULL,
+            "ContactEmailAddress" character varying(200) NOT NULL,
+            "CompanyWebsite" character varying(300) NOT NULL,
+            "Industry" character varying(100) NOT NULL,
+            "CompanySize" character varying(100) NOT NULL,
+            "PlanName" character varying(50) NOT NULL,
+            "PlanPriceMonthly" numeric(18,2) NOT NULL,
+            "TeamMembersLimit" integer NOT NULL,
+            "ActiveProjectsLimit" integer NOT NULL,
+            "NextBillingDate" timestamp with time zone NOT NULL,
+            "PaymentMethodLast4" character varying(4) NOT NULL,
+            "BillingEmail" character varying(200) NOT NULL,
+            "TaxIdOrVatNumber" character varying(100) NOT NULL,
+            "DefaultTeamSizeLimit" integer NOT NULL,
+            "DefaultPtoPolicy" character varying(100) NOT NULL,
+            "DefaultWorkSchedule" character varying(100) NOT NULL,
+            "PrimaryTimezone" character varying(100) NOT NULL,
+            "AutoProvisionNewHires" boolean NOT NULL,
+            "RequireManagerApprovalForTimeOff" boolean NOT NULL,
+            "RequireTwoFactorAuthentication" boolean NOT NULL,
+            "EnforceIpAllowlist" boolean NOT NULL,
+            "DataEncryptionAtRest" boolean NOT NULL,
+            "IdleSessionTimeout" character varying(50) NOT NULL,
+            "AuditLogRetention" character varying(50) NOT NULL,
+            "SsoProviderName" character varying(100) NOT NULL,
+            "SsoConnected" boolean NOT NULL,
+            "CreatedAt" timestamp with time zone NOT NULL,
+            "UpdatedAt" timestamp with time zone NOT NULL
+        );
+        """);
+
+    await db.Database.ExecuteSqlRawAsync("""
+        CREATE TABLE IF NOT EXISTS "WorkspaceIntegrations" (
+            "Id" uuid PRIMARY KEY,
+            "EmployerId" uuid NOT NULL,
+            "Key" character varying(50) NOT NULL,
+            "Name" character varying(150) NOT NULL,
+            "Status" character varying(50) NOT NULL,
+            "IsConnected" boolean NOT NULL,
+            "Accent" character varying(50) NOT NULL,
+            "CreatedAt" timestamp with time zone NOT NULL,
+            "UpdatedAt" timestamp with time zone NOT NULL
+        );
+        """);
 }
 catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "An error occurred while seeding roles.");
+    logger.LogError(ex, "An error occurred during startup.");
 }
 
 if (app.Environment.IsDevelopment())
@@ -141,9 +205,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseMiddleware<RequestTimeMiddleware>();
 app.UseCors("AllowAll");
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

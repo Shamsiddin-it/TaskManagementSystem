@@ -1,7 +1,7 @@
 public class InsertActivityLogDto
 {
     public int TeamId { get; set; }
-    public int ActorId { get; set; }
+    public string ActorId { get; set; } = null!;
     public ActionType ActionType { get; set; }
     public string EntityType { get; set; } = null!;
     public int EntityId { get; set; }
@@ -18,7 +18,7 @@ public class GetActivityLogDto
 {
     public int Id { get; set; }
     public int TeamId { get; set; }
-    public int ActorId { get; set; }
+    public string ActorId { get; set; } = null!;
     public ActionType ActionType { get; set; }
     public string EntityType { get; set; } = null!;
     public int EntityId { get; set; }
