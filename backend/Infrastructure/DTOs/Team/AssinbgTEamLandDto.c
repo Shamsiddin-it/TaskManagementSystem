@@ -1,4 +1,4 @@
 public class AssignTeamLeadDto
 {
-    public Guid TeamLeadId { get; set; }
+    public string TeamLeadId { get; set; } = string.Empty;
 }

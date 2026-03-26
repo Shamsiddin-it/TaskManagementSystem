@@ -2,8 +2,8 @@ namespace Application.DTOs;
 
 public class GetDaySummaryDto
 {
-    public int Id { get; set; }
-    public int UserId { get; set; }
+    public Guid Id { get; set; }
+    public string UserId { get; set; }
     public GetUserDto User { get; set; } = null!;
     public DateTime SummaryDate { get; set; }
     public int TasksCompleted { get; set; }

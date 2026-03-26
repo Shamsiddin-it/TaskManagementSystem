@@ -9,7 +9,7 @@ public class BudgetController : ControllerBase
     [HttpGet("org")]
     public async Task<IActionResult> GetOrgBudget()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.GetOrgBudgetAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }
@@ -17,7 +17,7 @@ public class BudgetController : ControllerBase
     [HttpPut("org")]
     public async Task<IActionResult> UpdateOrgBudget([FromBody] UpdateOrgBudgetDto dto)
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.UpdateOrgBudgetAsync(employerId, dto);
         return StatusCode(res.StatusCode, res);
     }

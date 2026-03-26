@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,7 +38,7 @@ public class TimeLogService(ApplicationDbContext dbContext) : ITimeLogService
         return new Response<string>(HttpStatusCode.OK, "Add TimeLog successfully");
     }
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateTimeLogDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateTimeLogDto dto)
     {
         var timeLog = await context.TimeLogs.FindAsync(id);
         if (timeLog == null)
@@ -55,7 +55,7 @@ public class TimeLogService(ApplicationDbContext dbContext) : ITimeLogService
         return new Response<string>(HttpStatusCode.OK, "Update TimeLog successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var timeLog = await context.TimeLogs.FindAsync(id);
         if (timeLog == null)
@@ -82,9 +82,9 @@ public class TimeLogService(ApplicationDbContext dbContext) : ITimeLogService
         var projects = await context.Projects.Where(x => projectIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id);
 
         var userIds = timeLogs.Select(x => x.UserId)
-            .Concat(tasks.Where(x => x.AssignedTo.HasValue).Select(x => x.AssignedTo!.Value))
-            .Concat(tasks.Where(x => x.CreatedBy.HasValue).Select(x => x.CreatedBy!.Value))
-            .Concat(teams.Values.Where(x => x.TeamLeadId.HasValue).Select(x => x.TeamLeadId!.Value))
+            .Concat(tasks.Where(x => !string.IsNullOrWhiteSpace(x.AssignedToId)).Select(x => x.AssignedToId))
+            .Concat(tasks.Where(x => !string.IsNullOrWhiteSpace(x.CreatedById)).Select(x => x.CreatedById))
+            .Concat(teams.Values.Where(x => !string.IsNullOrWhiteSpace(x.TeamLeadId)).Select(x => x.TeamLeadId!))
             .Concat(projects.Values.Select(x => x.EmployerId))
             .Distinct()
             .ToList();
@@ -111,7 +111,7 @@ public class TimeLogService(ApplicationDbContext dbContext) : ITimeLogService
         return new Response<List<GetTimeLogDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetTimeLogDto>> GetByIdAsync(int id)
+    public async Task<Response<GetTimeLogDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);

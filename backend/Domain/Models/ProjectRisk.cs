@@ -1,3 +1,5 @@
+namespace Domain.Models;
+
 public class ProjectRisk : BaseEntity
 {
     // public Guid Id { get; set; }

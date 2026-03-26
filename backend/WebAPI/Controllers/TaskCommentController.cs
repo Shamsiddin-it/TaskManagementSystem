@@ -19,14 +19,14 @@ public class TaskCommentController(ITaskCommentService service) : ControllerBase
     public async Task<Response<string>> AddCommentAsync(CreateTaskCommentDto dto) => await _service.AddCommentAsync(dto);
 
     [HttpPut("{id}")]
-    public async Task<Response<string>> UpdateAsync(int id, UpdateTaskCommentDto dto) => await _service.UpdateAsync(id, dto);
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateTaskCommentDto dto) => await _service.UpdateAsync(id, dto);
 
     [HttpDelete("{id}")]
-    public async Task<Response<string>> DeleteAsync(int id) => await _service.DeleteAsync(id);
+    public async Task<Response<string>> DeleteAsync(Guid id) => await _service.DeleteAsync(id);
 
     [HttpGet]
     public async Task<Response<List<GetTaskCommentDto>>> GetAllAsync() => await _service.GetAllAsync();
 
     [HttpGet("{id}")]
-    public async Task<Response<GetTaskCommentDto>> GetByIdAsync(int id) => await _service.GetByIdAsync(id);
+    public async Task<Response<GetTaskCommentDto>> GetByIdAsync(Guid id) => await _service.GetByIdAsync(id);
 }

@@ -2,7 +2,7 @@ using Application.DTOs;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using Infrastructure;
 namespace WebAPI.Controllers;
 
 [ApiController]
@@ -19,14 +19,14 @@ public class AbsenceController(IAbsenceService service) : ControllerBase
     public async Task<Response<string>> RequestAbsenceAsync(CreateAbsenceDto dto) => await _service.RequestAbsenceAsync(dto);
 
     [HttpPut("{id}")]
-    public async Task<Response<string>> UpdateAsync(int id, UpdateAbsenceDto dto) => await _service.UpdateAsync(id, dto);
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateAbsenceDto dto) => await _service.UpdateAsync(id, dto);
 
     [HttpDelete("{id}")]
-    public async Task<Response<string>> DeleteAsync(int id) => await _service.DeleteAsync(id);
+    public async Task<Response<string>> DeleteAsync(Guid id) => await _service.DeleteAsync(id);
 
     [HttpGet]
     public async Task<Response<List<GetAbsenceDto>>> GetAllAsync() => await _service.GetAllAsync();
 
     [HttpGet("{id}")]
-    public async Task<Response<GetAbsenceDto>> GetByIdAsync(int id) => await _service.GetByIdAsync(id);
+    public async Task<Response<GetAbsenceDto>> GetByIdAsync(Guid id) => await _service.GetByIdAsync(id);
 }

@@ -4,7 +4,7 @@ namespace Application.DTOs;
 
 public class UpdateScheduleEventDto
 {
-    public int? TaskId { get; set; }
+    public Guid? TaskId { get; set; }
     public string? Title { get; set; }
     public EventType? Type { get; set; }
     public DateTime? StartTime { get; set; }

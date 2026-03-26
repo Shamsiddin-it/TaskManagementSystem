@@ -2,7 +2,7 @@ namespace Application.DTOs;
 
 public class CreateDaySummaryDto
 {
-    public int UserId { get; set; }
+    public string UserId { get; set; }
     public DateTime SummaryDate { get; set; }
     public int TasksCompleted { get; set; }
     public int TasksTotal { get; set; }

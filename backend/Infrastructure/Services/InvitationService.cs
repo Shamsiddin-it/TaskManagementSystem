@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -45,7 +45,7 @@ public class InvitationService(ApplicationDbContext dbContext) : IInvitationServ
         return new Response<string>(HttpStatusCode.OK, "Add Invitation successfully");
     }
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateInvitationDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateInvitationDto dto)
     {
         var invitation = await context.Invitations.FindAsync(id);
         if (invitation == null)
@@ -61,7 +61,7 @@ public class InvitationService(ApplicationDbContext dbContext) : IInvitationServ
         return new Response<string>(HttpStatusCode.OK, "Update Invitation successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var invitation = await context.Invitations.FindAsync(id);
         if (invitation == null)
@@ -74,7 +74,7 @@ public class InvitationService(ApplicationDbContext dbContext) : IInvitationServ
         return new Response<string>(HttpStatusCode.OK, "Delete Invitation successfully");
     }
 
-    public async Task<Response<string>> AcceptAsync(int id)
+    public async Task<Response<string>> AcceptAsync(Guid id)
     {
         var invitation = await context.Invitations.FindAsync(id);
         if (invitation == null)
@@ -111,7 +111,7 @@ public class InvitationService(ApplicationDbContext dbContext) : IInvitationServ
         return new Response<string>(HttpStatusCode.OK, "Invitation accepted successfully");
     }
 
-    public async Task<Response<string>> RejectAsync(int id)
+    public async Task<Response<string>> RejectAsync(Guid id)
     {
         var invitation = await context.Invitations.FindAsync(id);
         if (invitation == null)
@@ -134,8 +134,8 @@ public class InvitationService(ApplicationDbContext dbContext) : IInvitationServ
             .ToListAsync();
 
         var userIds = invitations
-            .Where(x => x.Team.TeamLeadId.HasValue)
-            .Select(x => x.Team.TeamLeadId!.Value)
+            .Where(x => !string.IsNullOrWhiteSpace(x.Team.TeamLeadId))
+            .Select(x => x.Team.TeamLeadId!)
             .Concat(invitations.Select(x => x.InvitedById))
             .Distinct()
             .ToList();
@@ -146,7 +146,7 @@ public class InvitationService(ApplicationDbContext dbContext) : IInvitationServ
         {
             users.TryGetValue(invitation.InvitedById, out var invitedBy);
             GetUserDto? teamLead = null;
-            if (invitation.Team.TeamLeadId.HasValue && users.TryGetValue(invitation.Team.TeamLeadId.Value, out var teamLeadUser))
+            if (!string.IsNullOrWhiteSpace(invitation.Team.TeamLeadId) && users.TryGetValue(invitation.Team.TeamLeadId, out var teamLeadUser))
             {
                 teamLead = ServiceMappingHelper.ToGetUserDto(teamLeadUser);
             }
@@ -173,7 +173,7 @@ public class InvitationService(ApplicationDbContext dbContext) : IInvitationServ
         return new Response<List<GetInvitationDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetInvitationDto>> GetByIdAsync(int id)
+    public async Task<Response<GetInvitationDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);

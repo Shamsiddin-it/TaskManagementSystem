@@ -16,14 +16,14 @@ public class AttachmentController(IAttachmentService service) : ControllerBase
     public async Task<Response<string>> AddAsync(CreateAttachmentDto dto) => await _service.AddAsync(dto);
 
     [HttpPut("{id}")]
-    public async Task<Response<string>> UpdateAsync(int id, UpdateAttachmentDto dto) => await _service.UpdateAsync(id, dto);
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateAttachmentDto dto) => await _service.UpdateAsync(id, dto);
 
     [HttpDelete("{id}")]
-    public async Task<Response<string>> DeleteAsync(int id) => await _service.DeleteAsync(id);
+    public async Task<Response<string>> DeleteAsync(Guid id) => await _service.DeleteAsync(id);
 
     [HttpGet]
     public async Task<Response<List<GetAttachmentDto>>> GetAllAsync() => await _service.GetAllAsync();
 
     [HttpGet("{id}")]
-    public async Task<Response<GetAttachmentDto>> GetByIdAsync(int id) => await _service.GetByIdAsync(id);
+    public async Task<Response<GetAttachmentDto>> GetByIdAsync(Guid id) => await _service.GetByIdAsync(id);
 }

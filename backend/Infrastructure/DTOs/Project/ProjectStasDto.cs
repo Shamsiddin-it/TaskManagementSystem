@@ -1,6 +1,6 @@
 public class ProjectStatsDto
 {
-    public int ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
     public int TotalTasks { get; set; }
     public int CompletedTasks { get; set; }
     public int BlockedTasks { get; set; }

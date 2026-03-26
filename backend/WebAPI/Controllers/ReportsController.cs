@@ -10,7 +10,7 @@ public class ReportsController : ControllerBase
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboard()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.GetDashboardAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }

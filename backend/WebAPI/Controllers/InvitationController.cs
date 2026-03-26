@@ -16,20 +16,20 @@ public class InvitationController(IInvitationService service) : ControllerBase
     public async Task<Response<string>> AddAsync(CreateInvitationDto dto) => await _service.AddAsync(dto);
 
     [HttpPut("{id}")]
-    public async Task<Response<string>> UpdateAsync(int id, UpdateInvitationDto dto) => await _service.UpdateAsync(id, dto);
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateInvitationDto dto) => await _service.UpdateAsync(id, dto);
 
     [HttpDelete("{id}")]
-    public async Task<Response<string>> DeleteAsync(int id) => await _service.DeleteAsync(id);
+    public async Task<Response<string>> DeleteAsync(Guid id) => await _service.DeleteAsync(id);
 
     [HttpGet]
     public async Task<Response<List<GetInvitationDto>>> GetAllAsync() => await _service.GetAllAsync();
 
     [HttpGet("{id}")]
-    public async Task<Response<GetInvitationDto>> GetByIdAsync(int id) => await _service.GetByIdAsync(id);
+    public async Task<Response<GetInvitationDto>> GetByIdAsync(Guid id) => await _service.GetByIdAsync(id);
 
     [HttpPatch("{id}/accept")]
-    public async Task<Response<string>> AcceptAsync(int id) => await _service.AcceptAsync(id);
+    public async Task<Response<string>> AcceptAsync(Guid id) => await _service.AcceptAsync(id);
 
     [HttpPatch("{id}/reject")]
-    public async Task<Response<string>> RejectAsync(int id) => await _service.RejectAsync(id);
+    public async Task<Response<string>> RejectAsync(Guid id) => await _service.RejectAsync(id);
 }

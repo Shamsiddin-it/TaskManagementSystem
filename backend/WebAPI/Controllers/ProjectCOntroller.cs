@@ -9,7 +9,7 @@ public class ProjectController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.CreateProjectAsync(employerId, dto);
         return StatusCode(res.StatusCode, res);
     }
@@ -17,7 +17,7 @@ public class ProjectController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetMyProjects()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.GetMyProjectsAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }

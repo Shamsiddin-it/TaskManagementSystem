@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,7 +35,7 @@ public class UserBadgeService(ApplicationDbContext dbContext) : IUserBadgeServic
         return new Response<string>(HttpStatusCode.OK, "Add UserBadge successfully");
     }
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateUserBadgeDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateUserBadgeDto dto)
     {
         var userBadge = await context.UserBadges.FindAsync(id);
         if (userBadge == null)
@@ -43,14 +43,14 @@ public class UserBadgeService(ApplicationDbContext dbContext) : IUserBadgeServic
             return new Response<string>(HttpStatusCode.NotFound, "UserBadge not found");
         }
 
-        if (dto.UserId.HasValue)
+        if (!string.IsNullOrWhiteSpace(dto.UserId))
         {
-            if (!await context.Users.AnyAsync(x => x.Id == dto.UserId.Value))
+            if (!await context.Users.AnyAsync(x => x.Id == dto.UserId))
             {
                 return new Response<string>(HttpStatusCode.NotFound, "User not found");
             }
 
-            userBadge.UserId = dto.UserId.Value;
+            userBadge.UserId = dto.UserId;
         }
 
         if (dto.BadgeId.HasValue)
@@ -67,7 +67,7 @@ public class UserBadgeService(ApplicationDbContext dbContext) : IUserBadgeServic
         return new Response<string>(HttpStatusCode.OK, "Update UserBadge successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var userBadge = await context.UserBadges.FindAsync(id);
         if (userBadge == null)
@@ -100,7 +100,7 @@ public class UserBadgeService(ApplicationDbContext dbContext) : IUserBadgeServic
         return new Response<List<GetUserBadgeDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetUserBadgeDto>> GetByIdAsync(int id)
+    public async Task<Response<GetUserBadgeDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);

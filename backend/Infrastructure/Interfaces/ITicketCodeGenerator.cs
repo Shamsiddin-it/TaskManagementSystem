@@ -1,4 +1,4 @@
 public interface ITicketCodeGenerator
 {
-    Task<string> GenerateTicketCodeAsync(int teamId, TicketType ticketType);
+    Task<string> GenerateTicketCodeAsync(Guid teamId, TicketType ticketType);
 }

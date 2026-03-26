@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,7 +38,7 @@ public class UserSettingsService(ApplicationDbContext dbContext) : IUserSettings
         return new Response<string>(HttpStatusCode.OK, "Add UserSettings successfully");
     }
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateUserSettingsDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateUserSettingsDto dto)
     {
         var userSettings = await context.UserSettings.FindAsync(id);
         if (userSettings == null)
@@ -56,7 +56,7 @@ public class UserSettingsService(ApplicationDbContext dbContext) : IUserSettings
         return new Response<string>(HttpStatusCode.OK, "Update UserSettings successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var userSettings = await context.UserSettings.FindAsync(id);
         if (userSettings == null)
@@ -87,7 +87,7 @@ public class UserSettingsService(ApplicationDbContext dbContext) : IUserSettings
         return new Response<List<GetUserSettingsDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetUserSettingsDto>> GetByIdAsync(int id)
+    public async Task<Response<GetUserSettingsDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);
@@ -99,7 +99,7 @@ public class UserSettingsService(ApplicationDbContext dbContext) : IUserSettings
         return new Response<GetUserSettingsDto>(HttpStatusCode.OK, "ok", item);
     }
 
-    public async Task<Response<GetUserSettingsDto>> GetByUserIdAsync(int userId)
+    public async Task<Response<GetUserSettingsDto>> GetByUserIdAsync(string userId)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.UserId == userId);

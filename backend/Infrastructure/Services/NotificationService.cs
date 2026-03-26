@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,7 +35,7 @@ public class NotificationService(ApplicationDbContext dbContext) : INotification
         return new Response<string>(HttpStatusCode.OK, "Add Notification successfully");
     }
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateNotificationDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateNotificationDto dto)
     {
         var notification = await context.Notifications.FindAsync(id);
         if (notification == null)
@@ -54,7 +54,7 @@ public class NotificationService(ApplicationDbContext dbContext) : INotification
         return new Response<string>(HttpStatusCode.OK, "Update Notification successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var notification = await context.Notifications.FindAsync(id);
         if (notification == null)
@@ -67,7 +67,7 @@ public class NotificationService(ApplicationDbContext dbContext) : INotification
         return new Response<string>(HttpStatusCode.OK, "Delete Notification successfully");
     }
 
-    public async Task<Response<string>> MarkAsReadAsync(int id)
+    public async Task<Response<string>> MarkAsReadAsync(Guid id)
     {
         var notification = await context.Notifications.FindAsync(id);
         if (notification == null)
@@ -100,7 +100,7 @@ public class NotificationService(ApplicationDbContext dbContext) : INotification
         return new Response<List<GetNotificationDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetNotificationDto>> GetByIdAsync(int id)
+    public async Task<Response<GetNotificationDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);

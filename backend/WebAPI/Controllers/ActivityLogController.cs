@@ -19,8 +19,8 @@ public class ActivityLogController : ControllerBase
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
         var res = await _service.GetByIdAsync(id);
         return StatusCode(res.StatusCode, res);
@@ -33,29 +33,29 @@ public class ActivityLogController : ControllerBase
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateActivityLogDto dto)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateActivityLogDto dto)
     {
         var res = await _service.UpdateAsync(id, dto);
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
     {
         var res = await _service.DeleteAsync(id);
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpGet("team/{teamId:int}")]
-    public async Task<IActionResult> GetTeamActivity(int teamId, [FromQuery] LimitOffsetFilter filter)
+    [HttpGet("team/{teamId:guid}")]
+    public async Task<IActionResult> GetTeamActivity(Guid teamId, [FromQuery] LimitOffsetFilter filter)
     {
         var res = await _service.GetTeamActivityAsync(teamId, filter);
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpGet("task/{taskId:int}")]
-    public async Task<IActionResult> GetTaskActivity(int taskId, [FromQuery] LimitOffsetFilter filter)
+    [HttpGet("task/{taskId:guid}")]
+    public async Task<IActionResult> GetTaskActivity(Guid taskId, [FromQuery] LimitOffsetFilter filter)
     {
         var res = await _service.GetTaskActivityAsync(taskId, filter);
         return StatusCode(res.StatusCode, res);

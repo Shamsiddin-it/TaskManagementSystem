@@ -2,7 +2,7 @@ namespace Domain.Models;
 
 public class ProjectMember : BaseEntity
 {
-    // public int Id { get; set; }
+    // public Guid Id { get; set; } = Guid.NewGuid();
     public Guid ProjectId { get; set; }
     public Project Project { get; set; } = null!;
     public string UserId { get; set; }

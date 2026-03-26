@@ -1,9 +1,9 @@
-using Domain.Entities;
+using Domain.Models;
 
 namespace Application.Interfaces;
 
 public interface IJwtTokenService
 {
-    string GenerateToken(User user);
+    string GenerateToken(ApplicationUser user);
     DateTime GetTokenExpirationUtc();
 }

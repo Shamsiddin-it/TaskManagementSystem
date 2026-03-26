@@ -1,7 +1,9 @@
+namespace Domain.Models;
+
 public class BudgetRecord : BaseEntity
 {
-    // public int Id { get; set; }
-    public int ProjectId { get; set; }
+    // public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ProjectId { get; set; }
     public Project Project { get; set; } = null!;
     public string Description { get; set; } = string.Empty;
     public decimal Amount { get; set; }

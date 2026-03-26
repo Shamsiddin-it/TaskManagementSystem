@@ -4,10 +4,10 @@ namespace Application.DTOs;
 
 public class GetFocusSessionDto
 {
-    public int Id { get; set; }
-    public int UserId { get; set; }
+    public Guid Id { get; set; }
+    public string UserId { get; set; }
     public GetUserDto User { get; set; } = null!;
-    public int? TaskId { get; set; }
+    public Guid? TaskId { get; set; }
     public GetTaskDto? Task { get; set; }
     public DateTime StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }

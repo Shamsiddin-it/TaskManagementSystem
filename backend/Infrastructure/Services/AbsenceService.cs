@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,7 +35,7 @@ public class AbsenceService(ApplicationDbContext dbContext) : IAbsenceService
 
     public Task<Response<string>> RequestAbsenceAsync(CreateAbsenceDto dto) => AddAsync(dto);
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateAbsenceDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateAbsenceDto dto)
     {
         var absence = await context.Absences.FindAsync(id);
         if (absence == null)
@@ -52,7 +52,7 @@ public class AbsenceService(ApplicationDbContext dbContext) : IAbsenceService
         return new Response<string>(HttpStatusCode.OK, "Update Absence successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var absence = await context.Absences.FindAsync(id);
         if (absence == null)
@@ -83,7 +83,7 @@ public class AbsenceService(ApplicationDbContext dbContext) : IAbsenceService
         return new Response<List<GetAbsenceDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetAbsenceDto>> GetByIdAsync(int id)
+    public async Task<Response<GetAbsenceDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);

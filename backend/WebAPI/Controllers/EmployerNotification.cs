@@ -9,7 +9,7 @@ public class EmployerNotificationController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetNotifications()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.GetNotificationsAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }
@@ -24,7 +24,7 @@ public class EmployerNotificationController : ControllerBase
     [HttpPatch("read-all")]
     public async Task<IActionResult> MarkAllAsRead()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.MarkAllAsReadAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }

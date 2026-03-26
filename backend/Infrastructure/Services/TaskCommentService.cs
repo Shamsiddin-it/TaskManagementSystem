@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,7 +39,7 @@ public class TaskCommentService(ApplicationDbContext dbContext) : ITaskCommentSe
 
     public Task<Response<string>> AddCommentAsync(CreateTaskCommentDto dto) => AddAsync(dto);
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateTaskCommentDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateTaskCommentDto dto)
     {
         var taskComment = await context.TaskComments.FindAsync(id);
         if (taskComment == null)
@@ -54,7 +54,7 @@ public class TaskCommentService(ApplicationDbContext dbContext) : ITaskCommentSe
         return new Response<string>(HttpStatusCode.OK, "Update TaskComment successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var taskComment = await context.TaskComments.FindAsync(id);
         if (taskComment == null)
@@ -76,9 +76,9 @@ public class TaskCommentService(ApplicationDbContext dbContext) : ITaskCommentSe
         var teams = await context.Teams.Include(x => x.Project).ThenInclude(x => x.Employer).Where(x => teamIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id);
 
         var userIds = comments.Select(x => x.AuthorId)
-            .Concat(tasks.Values.Where(x => x.AssignedTo.HasValue).Select(x => x.AssignedTo!.Value))
-            .Concat(tasks.Values.Where(x => x.CreatedBy.HasValue).Select(x => x.CreatedBy!.Value))
-            .Concat(teams.Values.Where(x => x.TeamLeadId.HasValue).Select(x => x.TeamLeadId!.Value))
+            .Concat(tasks.Values.Where(x => !string.IsNullOrWhiteSpace(x.AssignedToId)).Select(x => x.AssignedToId))
+            .Concat(tasks.Values.Where(x => !string.IsNullOrWhiteSpace(x.CreatedById)).Select(x => x.CreatedById))
+            .Concat(teams.Values.Where(x => !string.IsNullOrWhiteSpace(x.TeamLeadId)).Select(x => x.TeamLeadId!))
             .Distinct()
             .ToList();
 
@@ -88,9 +88,9 @@ public class TaskCommentService(ApplicationDbContext dbContext) : ITaskCommentSe
         {
             var task = tasks[comment.TaskId];
             var team = teams[task.TeamId];
-            users.TryGetValue(task.AssignedTo ?? 0, out var assignedUser);
-            users.TryGetValue(task.CreatedBy ?? 0, out var createdByUser);
-            users.TryGetValue(team.TeamLeadId ?? 0, out var teamLeadUser);
+            users.TryGetValue(task.AssignedToId ?? string.Empty, out var assignedUser);
+            users.TryGetValue(task.CreatedById ?? string.Empty, out var createdByUser);
+            users.TryGetValue(team.TeamLeadId ?? string.Empty, out var teamLeadUser);
 
             var projectDto = ServiceMappingHelper.ToGetProjectDto(team.Project);
             var teamDto = ServiceMappingHelper.ToGetTeamDto(team, projectDto, teamLeadUser != null ? ServiceMappingHelper.ToGetUserDto(teamLeadUser) : null);
@@ -114,7 +114,7 @@ public class TaskCommentService(ApplicationDbContext dbContext) : ITaskCommentSe
         return new Response<List<GetTaskCommentDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetTaskCommentDto>> GetByIdAsync(int id)
+    public async Task<Response<GetTaskCommentDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);

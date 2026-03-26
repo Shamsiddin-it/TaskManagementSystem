@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +28,7 @@ public class FocusSessionService(ApplicationDbContext dbContext) : IFocusSession
         return await CreateSessionAsync(dto);
     }
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateFocusSessionDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateFocusSessionDto dto)
     {
         var session = await context.FocusSessions.FindAsync(id);
         if (session == null)
@@ -56,7 +56,7 @@ public class FocusSessionService(ApplicationDbContext dbContext) : IFocusSession
         return new Response<string>(HttpStatusCode.OK, "Update FocusSession successfully");
     }
 
-    public async Task<Response<string>> PauseAsync(int id)
+    public async Task<Response<string>> PauseAsync(Guid id)
     {
         var session = await context.FocusSessions.FindAsync(id);
         if (session == null)
@@ -69,7 +69,7 @@ public class FocusSessionService(ApplicationDbContext dbContext) : IFocusSession
         return new Response<string>(HttpStatusCode.OK, "FocusSession paused successfully");
     }
 
-    public async Task<Response<string>> CompleteAsync(int id)
+    public async Task<Response<string>> CompleteAsync(Guid id)
     {
         var session = await context.FocusSessions.FindAsync(id);
         if (session == null)
@@ -88,7 +88,7 @@ public class FocusSessionService(ApplicationDbContext dbContext) : IFocusSession
         return new Response<string>(HttpStatusCode.OK, "FocusSession completed successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var session = await context.FocusSessions.FindAsync(id);
         if (session == null)
@@ -115,9 +115,9 @@ public class FocusSessionService(ApplicationDbContext dbContext) : IFocusSession
         var projects = await context.Projects.Where(x => projectIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id);
 
         var userIds = sessions.Select(x => x.UserId)
-            .Concat(tasks.Where(x => x.AssignedTo.HasValue).Select(x => x.AssignedTo!.Value))
-            .Concat(tasks.Where(x => x.CreatedBy.HasValue).Select(x => x.CreatedBy!.Value))
-            .Concat(teams.Values.Where(x => x.TeamLeadId.HasValue).Select(x => x.TeamLeadId!.Value))
+            .Concat(tasks.Where(x => !string.IsNullOrWhiteSpace(x.AssignedToId)).Select(x => x.AssignedToId))
+            .Concat(tasks.Where(x => !string.IsNullOrWhiteSpace(x.CreatedById)).Select(x => x.CreatedById))
+            .Concat(teams.Values.Where(x => !string.IsNullOrWhiteSpace(x.TeamLeadId)).Select(x => x.TeamLeadId!))
             .Concat(projects.Values.Select(x => x.EmployerId))
             .Distinct()
             .ToList();
@@ -145,7 +145,7 @@ public class FocusSessionService(ApplicationDbContext dbContext) : IFocusSession
         return new Response<List<GetFocusSessionDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetFocusSessionDto>> GetByIdAsync(int id)
+    public async Task<Response<GetFocusSessionDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);

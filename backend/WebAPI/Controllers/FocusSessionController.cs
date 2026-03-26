@@ -19,20 +19,20 @@ public class FocusSessionController(IFocusSessionService service) : ControllerBa
     public async Task<Response<string>> StartAsync(CreateFocusSessionDto dto) => await _service.StartAsync(dto);
 
     [HttpPut("{id}")]
-    public async Task<Response<string>> UpdateAsync(int id, UpdateFocusSessionDto dto) => await _service.UpdateAsync(id, dto);
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateFocusSessionDto dto) => await _service.UpdateAsync(id, dto);
 
     [HttpDelete("{id}")]
-    public async Task<Response<string>> DeleteAsync(int id) => await _service.DeleteAsync(id);
+    public async Task<Response<string>> DeleteAsync(Guid id) => await _service.DeleteAsync(id);
 
     [HttpPatch("{id}/pause")]
-    public async Task<Response<string>> PauseAsync(int id) => await _service.PauseAsync(id);
+    public async Task<Response<string>> PauseAsync(Guid id) => await _service.PauseAsync(id);
 
     [HttpPatch("{id}/complete")]
-    public async Task<Response<string>> CompleteAsync(int id) => await _service.CompleteAsync(id);
+    public async Task<Response<string>> CompleteAsync(Guid id) => await _service.CompleteAsync(id);
 
     [HttpGet]
     public async Task<Response<List<GetFocusSessionDto>>> GetAllAsync() => await _service.GetAllAsync();
 
     [HttpGet("{id}")]
-    public async Task<Response<GetFocusSessionDto>> GetByIdAsync(int id) => await _service.GetByIdAsync(id);
+    public async Task<Response<GetFocusSessionDto>> GetByIdAsync(Guid id) => await _service.GetByIdAsync(id);
 }

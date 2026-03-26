@@ -10,7 +10,7 @@ public class UserController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetDirectory()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.GetDirectoryAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }
@@ -18,7 +18,7 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.CreateUserAsync(employerId, dto);
         return StatusCode(res.StatusCode, res);
     }

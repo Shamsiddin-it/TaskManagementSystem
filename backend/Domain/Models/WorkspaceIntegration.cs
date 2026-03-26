@@ -1,3 +1,5 @@
+namespace Domain.Models;
+
 public class WorkspaceIntegration:BaseEntity
 {
     // public Guid Id { get; set; }

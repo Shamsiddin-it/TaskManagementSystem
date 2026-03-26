@@ -19,8 +19,8 @@ public class RetroActionItemController : ControllerBase
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
         var res = await _service.GetByIdAsync(id);
         return StatusCode(res.StatusCode, res);
@@ -33,22 +33,22 @@ public class RetroActionItemController : ControllerBase
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateRetroActionItemDto dto)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRetroActionItemDto dto)
     {
         var res = await _service.UpdateAsync(id, dto);
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
     {
         var res = await _service.DeleteAsync(id);
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpPatch("{id:int}/done")]
-    public async Task<IActionResult> SetDone(int id, [FromQuery] bool isDone)
+    [HttpPatch("{id:guid}/done")]
+    public async Task<IActionResult> SetDone(Guid id, [FromQuery] bool isDone)
     {
         var res = await _service.SetDoneAsync(id, isDone);
         return StatusCode(res.StatusCode, res);

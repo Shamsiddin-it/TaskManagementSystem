@@ -2,10 +2,10 @@ namespace Application.DTOs;
 
 public class GetTimeLogDto
 {
-    public int Id { get; set; }
-    public int TaskId { get; set; }
+    public Guid Id { get; set; }
+    public Guid TaskId { get; set; }
     public GetTaskDto Task { get; set; } = null!;
-    public int UserId { get; set; }
+    public string UserId { get; set; }
     public GetUserDto User { get; set; } = null!;
     public DateTime StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }

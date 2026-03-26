@@ -1,3 +1,5 @@
+using Domain.Enums;
+
 public class CreateUserDto
 {
     public string FirstName { get; set; } = string.Empty;

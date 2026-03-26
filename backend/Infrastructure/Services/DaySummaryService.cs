@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,7 +39,7 @@ public class DaySummaryService(ApplicationDbContext dbContext) : IDaySummaryServ
         return new Response<string>(HttpStatusCode.OK, "Add DaySummary successfully");
     }
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateDaySummaryDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateDaySummaryDto dto)
     {
         var daySummary = await context.DaySummaries.FindAsync(id);
         if (daySummary == null)
@@ -62,7 +62,7 @@ public class DaySummaryService(ApplicationDbContext dbContext) : IDaySummaryServ
         return new Response<string>(HttpStatusCode.OK, "Update DaySummary successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var daySummary = await context.DaySummaries.FindAsync(id);
         if (daySummary == null)
@@ -99,7 +99,7 @@ public class DaySummaryService(ApplicationDbContext dbContext) : IDaySummaryServ
         return new Response<List<GetDaySummaryDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetDaySummaryDto>> GetByIdAsync(int id)
+    public async Task<Response<GetDaySummaryDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);

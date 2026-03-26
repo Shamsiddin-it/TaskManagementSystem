@@ -6,7 +6,7 @@ public class ApplicationUser : IdentityUser
 {
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = string.Empty;
-    public UserRole Role { get; set; } = UserRole.Worker;
+    public Domain.Enums.UserRole Role { get; set; } = Domain.Enums.UserRole.Worker;
     public string? AvatarUrl { get; set; }
     public string? AvatarInitials { get; set; }
     public string? AvatarColor { get; set; }

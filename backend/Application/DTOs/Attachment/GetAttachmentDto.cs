@@ -3,10 +3,10 @@ namespace Application.DTOs;
 
 public class GetAttachmentDto
 {
-    public int Id { get; set; }
-    public int TaskId { get; set; }
+    public Guid Id { get; set; }
+    public Guid TaskId { get; set; }
     public GetTaskDto Task { get; set; } = null!;
-    public int UploadedById { get; set; }
+    public string UploadedById { get; set; } = string.Empty;
     public GetUserDto UploadedBy { get; set; } = null!;
     public string FileName { get; set; } = string.Empty;
     public string FilePath { get; set; } = string.Empty;

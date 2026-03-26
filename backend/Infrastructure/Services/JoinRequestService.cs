@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,7 +39,7 @@ public class JoinRequestService(ApplicationDbContext dbContext) : IJoinRequestSe
 
     public Task<Response<string>> ApplyToTeamAsync(CreateJoinRequestDto dto) => AddAsync(dto);
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateJoinRequestDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateJoinRequestDto dto)
     {
         var joinRequest = await context.JoinRequests.FindAsync(id);
         if (joinRequest == null)
@@ -54,7 +54,7 @@ public class JoinRequestService(ApplicationDbContext dbContext) : IJoinRequestSe
         return new Response<string>(HttpStatusCode.OK, "Update JoinRequest successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var joinRequest = await context.JoinRequests.FindAsync(id);
         if (joinRequest == null)
@@ -76,13 +76,17 @@ public class JoinRequestService(ApplicationDbContext dbContext) : IJoinRequestSe
             .Include(x => x.User)
             .ToListAsync();
 
-        var teamLeadIds = joinRequests.Where(x => x.Team.TeamLeadId.HasValue).Select(x => x.Team.TeamLeadId!.Value).Distinct().ToList();
+        var teamLeadIds = joinRequests
+            .Where(x => !string.IsNullOrWhiteSpace(x.Team.TeamLeadId))
+            .Select(x => x.Team.TeamLeadId!)
+            .Distinct()
+            .ToList();
         var teamLeads = await context.Users.Where(x => teamLeadIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id);
 
         var result = joinRequests.Select(joinRequest =>
         {
             GetUserDto? teamLead = null;
-            if (joinRequest.Team.TeamLeadId.HasValue && teamLeads.TryGetValue(joinRequest.Team.TeamLeadId.Value, out var teamLeadUser))
+            if (!string.IsNullOrWhiteSpace(joinRequest.Team.TeamLeadId) && teamLeads.TryGetValue(joinRequest.Team.TeamLeadId, out var teamLeadUser))
             {
                 teamLead = ServiceMappingHelper.ToGetUserDto(teamLeadUser);
             }
@@ -106,7 +110,7 @@ public class JoinRequestService(ApplicationDbContext dbContext) : IJoinRequestSe
         return new Response<List<GetJoinRequestDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetJoinRequestDto>> GetByIdAsync(int id)
+    public async Task<Response<GetJoinRequestDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);

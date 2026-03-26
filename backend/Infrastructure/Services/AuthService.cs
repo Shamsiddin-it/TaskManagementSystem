@@ -32,7 +32,7 @@ public class AuthService : IAuthService
                 FirstName = dto.FirstName,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Role = UserRole.Employer,
+                Role = Domain.Enums.UserRole.Employer,
                 AvatarInitials = GetInitials(dto.FirstName),
                 IsActive = true,
                 OnlineStatus = OnlineStatus.Online,
@@ -109,7 +109,7 @@ public class AuthService : IAuthService
         };
 
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]!));
+            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(

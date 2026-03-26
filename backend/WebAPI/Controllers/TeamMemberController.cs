@@ -19,8 +19,8 @@ public class TeamMemberController : ControllerBase
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
         var res = await _service.GetByIdAsync(id);
         return StatusCode(res.StatusCode, res);
@@ -33,22 +33,22 @@ public class TeamMemberController : ControllerBase
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateTeamMemberDto dto)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTeamMemberDto dto)
     {
         var res = await _service.UpdateAsync(id, dto);
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
     {
         var res = await _service.DeleteAsync(id);
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpPatch("{id:int}/active")]
-    public async Task<IActionResult> SetActive(int id, [FromQuery] bool isActive)
+    [HttpPatch("{id:guid}/active")]
+    public async Task<IActionResult> SetActive(Guid id, [FromQuery] bool isActive)
     {
         var res = await _service.SetActiveAsync(id, isActive);
         return StatusCode(res.StatusCode, res);

@@ -1,4 +1,4 @@
-using Domain.Entities;
+using Domain.Models;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,9 +8,9 @@ namespace Infrastructure.Data;
 public class AuthSeeder
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly IPasswordHasher<ApplicationUser> _passwordHasher;
 
-    public AuthSeeder(ApplicationDbContext dbContext, IPasswordHasher<User> passwordHasher)
+    public AuthSeeder(ApplicationDbContext dbContext, IPasswordHasher<ApplicationUser> passwordHasher)
     {
         _dbContext = dbContext;
         _passwordHasher = passwordHasher;
@@ -26,11 +26,11 @@ public class AuthSeeder
     private async System.Threading.Tasks.Task SeedUserAsync(string fullName, string email, UserRole role)
     {
         var existingUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
-        if (existingUser is not null)
+        if (existingUser != null)
         {
-            if (existingUser.Role != role.ToStorageValue())
+            if (existingUser.Role != role)
             {
-                existingUser.Role = role.ToStorageValue();
+                existingUser.Role = role;
                 existingUser.UpdatedAt = DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
             }
@@ -38,16 +38,18 @@ public class AuthSeeder
             return;
         }
 
-        var user = new User
+        var user = new ApplicationUser
         {
-            FullName = fullName,
+            FirstName = fullName,
+            LastName = string.Empty,
             Email = email,
-            Role = role.ToStorageValue(),
+            Role = role,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
+        user.UserName = email;
         user.PasswordHash = _passwordHasher.HashPassword(user, "123456");
 
         await _dbContext.Users.AddAsync(user);

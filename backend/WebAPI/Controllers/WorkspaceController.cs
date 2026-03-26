@@ -10,7 +10,7 @@ public class WorkspaceController : ControllerBase
     [HttpGet("overview")]
     public async Task<IActionResult> GetOverview()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.GetOverviewAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }
@@ -18,7 +18,7 @@ public class WorkspaceController : ControllerBase
     [HttpGet("settings")]
     public async Task<IActionResult> GetSettings()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.GetSettingsAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }
@@ -26,7 +26,7 @@ public class WorkspaceController : ControllerBase
     [HttpPut("settings")]
     public async Task<IActionResult> UpdateSettings([FromBody] UpdateWorkspaceSettingsDto dto)
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.UpdateSettingsAsync(employerId, dto);
         return StatusCode(res.StatusCode, res);
     }
@@ -34,7 +34,7 @@ public class WorkspaceController : ControllerBase
     [HttpPost("settings/actions/cancel-plan")]
     public async Task<IActionResult> CancelPlan()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.CancelPlanAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }
@@ -42,7 +42,7 @@ public class WorkspaceController : ControllerBase
     [HttpPost("settings/actions/request-export")]
     public async Task<IActionResult> RequestExport()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.RequestExportAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }
@@ -50,7 +50,7 @@ public class WorkspaceController : ControllerBase
     [HttpPost("settings/actions/manage-sso")]
     public async Task<IActionResult> ManageSso()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.ManageSsoAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }
@@ -58,7 +58,7 @@ public class WorkspaceController : ControllerBase
     [HttpGet("settings/export/invoices")]
     public async Task<IActionResult> DownloadInvoices()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.DownloadInvoicesAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }
@@ -66,7 +66,7 @@ public class WorkspaceController : ControllerBase
     [HttpDelete("settings/actions/close-organization")]
     public async Task<IActionResult> CloseOrganization()
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.CloseOrganizationAsync(employerId);
         return StatusCode(res.StatusCode, res);
     }
@@ -74,7 +74,7 @@ public class WorkspaceController : ControllerBase
     [HttpPost("settings/integrations/{key}")]
     public async Task<IActionResult> IntegrationAction(string key, [FromBody] WorkspaceIntegrationActionDto dto)
     {
-        var employerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var employerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var res = await _service.ApplyIntegrationActionAsync(employerId, key, dto.Action);
         return StatusCode(res.StatusCode, res);
     }

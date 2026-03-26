@@ -14,7 +14,7 @@ public class ReportsTrendPointDto
 
 public class ProjectSpendSummaryDto
 {
-    public int ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
     public string ProjectTitle { get; set; } = string.Empty;
     public decimal Amount { get; set; }
 }

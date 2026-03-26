@@ -1,3 +1,4 @@
+using Domain.Enums;
 using Domain.Models;
 
 public class RegisterDto

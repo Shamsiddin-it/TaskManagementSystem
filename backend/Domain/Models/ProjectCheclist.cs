@@ -1,7 +1,9 @@
+namespace Domain.Models;
+
 public class ProjectChecklist : BaseEntity
 {
     // public Guid Id { get; set; }
-    public int ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
     public Project Project { get; set; } = null!;
     public string Title { get; set; } = string.Empty;
     public bool IsCompleted { get; set; }

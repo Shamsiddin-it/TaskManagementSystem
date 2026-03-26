@@ -11,7 +11,7 @@ public class TicketCodeGenerator : ITicketCodeGenerator
         _db = db;
     }
 
-    public async Task<string> GenerateTicketCodeAsync(int teamId, TicketType ticketType)
+    public async Task<string> GenerateTicketCodeAsync(Guid teamId, TicketType ticketType)
     {
         var prefix = ticketType switch
         {

@@ -1,16 +1,16 @@
 using Application.DTOs;
-using Domain.Entities;
+using Domain.Models;
 
 namespace Application.Interfaces;
 
 public interface IInvitationService
 {
     Task<Response<string>> AddAsync(CreateInvitationDto dto);
-    Task<Response<string>> UpdateAsync(int id, UpdateInvitationDto dto);
-    Task<Response<string>> DeleteAsync(int id);
-    Task<Response<string>> AcceptAsync(int id);
-    Task<Response<string>> RejectAsync(int id);
+    Task<Response<string>> UpdateAsync(Guid id, UpdateInvitationDto dto);
+    Task<Response<string>> DeleteAsync(Guid id);
+    Task<Response<string>> AcceptAsync(Guid id);
+    Task<Response<string>> RejectAsync(Guid id);
 
     Task<Response<List<GetInvitationDto>>> GetAllAsync();
-    Task<Response<GetInvitationDto>> GetByIdAsync(int id);
+    Task<Response<GetInvitationDto>> GetByIdAsync(Guid id);
 }

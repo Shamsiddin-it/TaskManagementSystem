@@ -1,6 +1,6 @@
 public class TimelinePhaseDto
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public string PhaseName { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }

@@ -2,7 +2,7 @@ namespace Application.DTOs;
 
 public class CreateUserSettingsDto
 {
-    public int UserId { get; set; }
+    public string UserId { get; set; }
     public bool AutoFocusEnabled { get; set; }
     public bool BlockNotificationsDuringFocus { get; set; }
     public int DefaultFocusDurationMinutes { get; set; } = 25;

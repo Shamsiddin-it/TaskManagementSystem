@@ -1,21 +1,19 @@
 using Application.DTOs;
-using Domain.Entities;
+using Domain.Models;
 using Domain.Enums;
 
 namespace Infrastructure.Services;
 
 internal static class ServiceMappingHelper
 {
-    public static GetUserDto ToGetUserDto(User user)
+    public static GetUserDto ToGetUserDto(ApplicationUser user)
     {
-        Enum.TryParse<UserRole>(user.Role, true, out var role);
-
         return new GetUserDto
         {
             Id = user.Id,
             FullName = user.FullName,
-            Email = user.Email,
-            Role = role,
+            Email = user.Email ?? string.Empty,
+            Role = user.Role,
             AvatarUrl = user.AvatarUrl,
             IsActive = user.IsActive,
             CreatedAt = user.CreatedAt,
@@ -32,7 +30,7 @@ internal static class ServiceMappingHelper
             Description = project.Description,
             EmployerId = project.EmployerId,
             Employer = ToGetUserDto(project.Employer),
-            Status = project.Status,
+            Status = project.Status.ToString(),
             GlobalDeadline = project.GlobalDeadline,
             CreatedAt = project.CreatedAt,
             UpdatedAt = project.UpdatedAt
@@ -48,7 +46,7 @@ internal static class ServiceMappingHelper
             Description = project.Description,
             EmployerId = project.EmployerId,
             Employer = employerDto,
-            Status = project.Status,
+            Status = project.Status.ToString(),
             GlobalDeadline = project.GlobalDeadline,
             CreatedAt = project.CreatedAt,
             UpdatedAt = project.UpdatedAt
@@ -70,7 +68,7 @@ internal static class ServiceMappingHelper
         };
     }
 
-    public static GetTaskDto ToGetTaskDto(Domain.Entities.Task task, GetTeamDto teamDto, GetUserDto? assignedToDto, GetUserDto? createdByDto)
+    public static GetTaskDto ToGetTaskDto(Domain.Models.Task task, GetTeamDto teamDto, GetUserDto? assignedToDto, GetUserDto? createdByDto)
     {
         return new GetTaskDto
         {
@@ -79,12 +77,12 @@ internal static class ServiceMappingHelper
             Description = task.Description,
             TeamId = task.TeamId,
             Team = teamDto,
-            AssignedTo = task.AssignedTo,
+            AssignedTo = task.AssignedToId,
             AssignedToUser = assignedToDto,
-            CreatedBy = task.CreatedBy,
+            CreatedBy = task.CreatedById,
             CreatedByUser = createdByDto,
-            Status = task.Status,
-            Priority = task.Priority,
+            Status = task.Status.ToString(),
+            Priority = task.Priority.ToString(),
             Deadline = task.Deadline,
             ScheduledStart = task.ScheduledStart,
             ScheduledEnd = task.ScheduledEnd,
@@ -95,7 +93,7 @@ internal static class ServiceMappingHelper
         };
     }
 
-    public static GetTeamDto ToGetTeamDto(Team team, Dictionary<int, Project> projects, Dictionary<int, User> users)
+    public static GetTeamDto ToGetTeamDto(Team team, Dictionary<Guid, Project> projects, Dictionary<string, ApplicationUser> users)
     {
         var project = projects[team.ProjectId];
         var employerDto = users.TryGetValue(project.EmployerId, out var employerUser)
@@ -103,7 +101,7 @@ internal static class ServiceMappingHelper
             : new GetUserDto { Id = project.EmployerId };
 
         GetUserDto? teamLeadDto = null;
-        if (team.TeamLeadId.HasValue && users.TryGetValue(team.TeamLeadId.Value, out var teamLeadUser))
+        if (!string.IsNullOrWhiteSpace(team.TeamLeadId) && users.TryGetValue(team.TeamLeadId, out var teamLeadUser))
         {
             teamLeadDto = ToGetUserDto(teamLeadUser);
         }
@@ -111,19 +109,19 @@ internal static class ServiceMappingHelper
         return ToGetTeamDto(team, ToGetProjectDto(project, employerDto), teamLeadDto);
     }
 
-    public static GetTaskDto ToGetTaskDto(Domain.Entities.Task task, Dictionary<int, Team> teams, Dictionary<int, Project> projects, Dictionary<int, User> users)
+    public static GetTaskDto ToGetTaskDto(Domain.Models.Task task, Dictionary<Guid, Team> teams, Dictionary<Guid, Project> projects, Dictionary<string, ApplicationUser> users)
     {
         var team = teams[task.TeamId];
         var teamDto = ToGetTeamDto(team, projects, users);
 
         GetUserDto? assignedToDto = null;
-        if (task.AssignedTo.HasValue && users.TryGetValue(task.AssignedTo.Value, out var assignedUser))
+        if (!string.IsNullOrWhiteSpace(task.AssignedToId) && users.TryGetValue(task.AssignedToId, out var assignedUser))
         {
             assignedToDto = ToGetUserDto(assignedUser);
         }
 
         GetUserDto? createdByDto = null;
-        if (task.CreatedBy.HasValue && users.TryGetValue(task.CreatedBy.Value, out var createdByUser))
+        if (!string.IsNullOrWhiteSpace(task.CreatedById) && users.TryGetValue(task.CreatedById, out var createdByUser))
         {
             createdByDto = ToGetUserDto(createdByUser);
         }

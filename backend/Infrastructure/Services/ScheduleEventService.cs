@@ -1,7 +1,7 @@
 using System.Net;
 using Application.DTOs;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,7 +41,7 @@ public class ScheduleEventService(ApplicationDbContext dbContext) : IScheduleEve
         return new Response<string>(HttpStatusCode.OK, "Add ScheduleEvent successfully");
     }
 
-    public async Task<Response<string>> UpdateAsync(int id, UpdateScheduleEventDto dto)
+    public async Task<Response<string>> UpdateAsync(Guid id, UpdateScheduleEventDto dto)
     {
         var scheduleEvent = await context.ScheduleEvents.FindAsync(id);
         if (scheduleEvent == null)
@@ -51,7 +51,7 @@ public class ScheduleEventService(ApplicationDbContext dbContext) : IScheduleEve
 
         if (dto.TaskId.HasValue)
         {
-            if (dto.TaskId.Value != 0 && !await context.Tasks.AnyAsync(x => x.Id == dto.TaskId.Value))
+            if (!await context.Tasks.AnyAsync(x => x.Id == dto.TaskId.Value))
             {
                 return new Response<string>(HttpStatusCode.NotFound, "Task not found");
             }
@@ -69,7 +69,7 @@ public class ScheduleEventService(ApplicationDbContext dbContext) : IScheduleEve
         return new Response<string>(HttpStatusCode.OK, "Update ScheduleEvent successfully");
     }
 
-    public async Task<Response<string>> DeleteAsync(int id)
+    public async Task<Response<string>> DeleteAsync(Guid id)
     {
         var scheduleEvent = await context.ScheduleEvents.FindAsync(id);
         if (scheduleEvent == null)
@@ -91,9 +91,9 @@ public class ScheduleEventService(ApplicationDbContext dbContext) : IScheduleEve
         var teams = await context.Teams.Include(x => x.Project).ThenInclude(x => x.Employer).Where(x => teamIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id);
 
         var userIds = events.Select(x => x.UserId)
-            .Concat(tasks.Values.Where(x => x.AssignedTo.HasValue).Select(x => x.AssignedTo!.Value))
-            .Concat(tasks.Values.Where(x => x.CreatedBy.HasValue).Select(x => x.CreatedBy!.Value))
-            .Concat(teams.Values.Where(x => x.TeamLeadId.HasValue).Select(x => x.TeamLeadId!.Value))
+            .Concat(tasks.Values.Where(x => !string.IsNullOrWhiteSpace(x.AssignedToId)).Select(x => x.AssignedToId))
+            .Concat(tasks.Values.Where(x => !string.IsNullOrWhiteSpace(x.CreatedById)).Select(x => x.CreatedById))
+            .Concat(teams.Values.Where(x => !string.IsNullOrWhiteSpace(x.TeamLeadId)).Select(x => x.TeamLeadId!))
             .Distinct()
             .ToList();
 
@@ -104,9 +104,9 @@ public class ScheduleEventService(ApplicationDbContext dbContext) : IScheduleEve
             GetTaskDto? taskDto = null;
             if (item.TaskId.HasValue && tasks.TryGetValue(item.TaskId.Value, out var task) && teams.TryGetValue(task.TeamId, out var team))
             {
-                users.TryGetValue(task.AssignedTo ?? 0, out var assignedUser);
-                users.TryGetValue(task.CreatedBy ?? 0, out var createdByUser);
-                users.TryGetValue(team.TeamLeadId ?? 0, out var teamLeadUser);
+                users.TryGetValue(task.AssignedToId ?? string.Empty, out var assignedUser);
+                users.TryGetValue(task.CreatedById ?? string.Empty, out var createdByUser);
+                users.TryGetValue(team.TeamLeadId ?? string.Empty, out var teamLeadUser);
 
                 var projectDto = ServiceMappingHelper.ToGetProjectDto(team.Project);
                 var teamDto = ServiceMappingHelper.ToGetTeamDto(team, projectDto, teamLeadUser != null ? ServiceMappingHelper.ToGetUserDto(teamLeadUser) : null);
@@ -135,7 +135,7 @@ public class ScheduleEventService(ApplicationDbContext dbContext) : IScheduleEve
         return new Response<List<GetScheduleEventDto>>(HttpStatusCode.OK, "ok", result);
     }
 
-    public async Task<Response<GetScheduleEventDto>> GetByIdAsync(int id)
+    public async Task<Response<GetScheduleEventDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
         var item = all.Date?.FirstOrDefault(x => x.Id == id);

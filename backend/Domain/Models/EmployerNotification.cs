@@ -1,8 +1,8 @@
-using Domain.Models;
+namespace Domain.Models;
 
 public class EmployerNotification : BaseEntity
 {
-    // public int Id { get; set; }
+    // public Guid Id { get; set; } = Guid.NewGuid();
     public string EmployerId { get; set; }
     public ApplicationUser Employer { get; set; } = null!;
     public EmployerNotifType Type { get; set; }

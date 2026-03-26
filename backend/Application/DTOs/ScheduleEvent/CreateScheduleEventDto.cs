@@ -4,8 +4,8 @@ namespace Application.DTOs;
 
 public class CreateScheduleEventDto
 {
-    public int UserId { get; set; }
-    public int? TaskId { get; set; }
+    public string UserId { get; set; }
+    public Guid? TaskId { get; set; }
     public string Title { get; set; } = string.Empty;
     public EventType Type { get; set; }
     public DateTime StartTime { get; set; }
