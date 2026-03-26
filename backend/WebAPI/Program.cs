@@ -1,19 +1,61 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using WebApi.EmailService;
+using WebApi.Entities;
+using WebApi.Seeds;
+using System.Linq;
+using Application;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Domain.Models;
+
 var builder = WebApplication.CreateBuilder(args);
+    builder.Services.AddDbContext<ApplicationDbContext>(opt =>
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+// builder.Services.Configure<GeminiSettings>(
+//     builder.Configuration.GetSection("Gemini"));
+builder.Services
+    .AddIdentityCore<ApplicationUser>(options =>
+    {
+        options.User.RequireUniqueEmail = true;
+        options.Password.RequiredLength = 8;
+        options.Password.RequireDigit = true;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireNonAlphanumeric = false;
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
+    })
+    .AddRoles<IdentityRole<int>>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddSignInManager()
+    .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<ITeamService, TeamService>();
-builder.Services.AddScoped<IProjectMemberService, ProjectMemberService>();
-builder.Services.AddScoped<IProjectRiskService, ProjectRiskService>();
-builder.Services.AddScoped<IBudgetService, BudgetService>();
-builder.Services.AddScoped<ITimelineService, TimelineService>();
-builder.Services.AddScoped<IEmployerNotificationService, EmployerNotificationService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
+builder.Services.AddControllers();
+builder.Services.AddScoped<IJwtTokenService,JwtTokenService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
+builder.Services.AddScoped<IRetroActionItemService, RetroActionItemService>();
+builder.Services.AddScoped<ISprintService, SprintService>();
+builder.Services.AddScoped<ISprintRetroService, SprintRetroService>();
+builder.Services.AddScoped<ISubtaskService, SubtaskService>();
+builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<ITaskTagService, TaskTagService>();
+builder.Services.AddScoped<ITeamMemberService, TeamMemberService>();
+builder.Services.AddScoped<ITicketCodeGenerator, TicketCodeGenerator>();
+// builder.Services.AddSwaggerGen();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddAutoMapper(typeof(InfrastructureProfile));
+builder.Services.AddLogging(config => {config.AddConsole(); config.SetMinimumLevel(LogLevel.Information);});
+var jwt = builder.Configuration.GetSection("Jwt");
+var keyBytes = Encoding.UTF8.GetBytes(jwt["Key"]!);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -24,42 +66,33 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
+
+            ValidIssuer = jwt["Issuer"],
+            ValidAudience = jwt["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+
+            ClockSkew = TimeSpan.FromSeconds(30)
         };
     });
 
-builder.Services.AddAuthorization();
-
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+builder.Services.AddSwaggerGen(options=>{
+     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.DefaultIgnoreCondition =
-            JsonIgnoreCondition.WhenWritingNull;
-    });
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "TaskManagementSystem API",
+        Title = "My API",
         Version = "v1"
     });
 
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
+        Scheme = "bearer",
         BearerFormat = "JWT",
-        In = ParameterLocation.Header
+        In = ParameterLocation.Header,
+        Description = "Введите JWT токен так: Bearer {token}"
     });
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
@@ -67,7 +100,7 @@ builder.Services.AddSwaggerGen(c =>
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    Id = JwtBearerDefaults.AuthenticationScheme
                 }
             },
             Array.Empty<string>()
@@ -75,76 +108,43 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-var app = builder.Build();
+builder.Services.AddMemoryCache();
 
-using (var scope = app.Services.CreateScope())
+builder.Services.AddCors(options =>
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
 
-    await db.Database.ExecuteSqlRawAsync("""
-        CREATE TABLE IF NOT EXISTS "WorkspaceSettings" (
-            "Id" uuid PRIMARY KEY,
-            "EmployerId" uuid NOT NULL,
-            "OrganizationName" character varying(200) NOT NULL,
-            "OrganizationCode" character varying(50) NOT NULL,
-            "PrimaryContactName" character varying(150) NOT NULL,
-            "ContactEmailAddress" character varying(200) NOT NULL,
-            "CompanyWebsite" character varying(300) NOT NULL,
-            "Industry" character varying(100) NOT NULL,
-            "CompanySize" character varying(100) NOT NULL,
-            "PlanName" character varying(50) NOT NULL,
-            "PlanPriceMonthly" numeric(18,2) NOT NULL,
-            "TeamMembersLimit" integer NOT NULL,
-            "ActiveProjectsLimit" integer NOT NULL,
-            "NextBillingDate" timestamp with time zone NOT NULL,
-            "PaymentMethodLast4" character varying(4) NOT NULL,
-            "BillingEmail" character varying(200) NOT NULL,
-            "TaxIdOrVatNumber" character varying(100) NOT NULL,
-            "DefaultTeamSizeLimit" integer NOT NULL,
-            "DefaultPtoPolicy" character varying(100) NOT NULL,
-            "DefaultWorkSchedule" character varying(100) NOT NULL,
-            "PrimaryTimezone" character varying(100) NOT NULL,
-            "AutoProvisionNewHires" boolean NOT NULL,
-            "RequireManagerApprovalForTimeOff" boolean NOT NULL,
-            "RequireTwoFactorAuthentication" boolean NOT NULL,
-            "EnforceIpAllowlist" boolean NOT NULL,
-            "DataEncryptionAtRest" boolean NOT NULL,
-            "IdleSessionTimeout" character varying(50) NOT NULL,
-            "AuditLogRetention" character varying(50) NOT NULL,
-            "SsoProviderName" character varying(100) NOT NULL,
-            "SsoConnected" boolean NOT NULL,
-            "CreatedAt" timestamp with time zone NOT NULL,
-            "UpdatedAt" timestamp with time zone NOT NULL
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorkspaceSettings_EmployerId" ON "WorkspaceSettings" ("EmployerId");
-        """);
+var app = builder.Build(); 
 
-    await db.Database.ExecuteSqlRawAsync("""
-        CREATE TABLE IF NOT EXISTS "WorkspaceIntegrations" (
-            "Id" uuid PRIMARY KEY,
-            "EmployerId" uuid NOT NULL,
-            "Key" character varying(50) NOT NULL,
-            "Name" character varying(150) NOT NULL,
-            "Status" character varying(50) NOT NULL,
-            "IsConnected" boolean NOT NULL,
-            "Accent" character varying(50) NOT NULL,
-            "CreatedAt" timestamp with time zone NOT NULL,
-            "UpdatedAt" timestamp with time zone NOT NULL
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorkspaceIntegrations_EmployerId_Key" ON "WorkspaceIntegrations" ("EmployerId", "Key");
-        """);
+try
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var services = scope.ServiceProvider;
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+
+    await DefaultRoles.SeedRoles(roleManager);
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occurred while seeding roles.");
 }
 
-app.UseSwagger();
-app.UseSwaggerUI();
-
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
-    app.UseHttpsRedirection();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+app.UseMiddleware<RequestTimeMiddleware>();
+app.UseCors("AllowAll");
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
