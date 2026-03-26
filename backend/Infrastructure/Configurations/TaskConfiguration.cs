@@ -13,10 +13,10 @@ public sealed class TaskConfiguration : IEntityTypeConfiguration<TaskEntity>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(x => x.UpdatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(x => x.TicketCode)
             .IsRequired()
@@ -36,13 +36,16 @@ public sealed class TaskConfiguration : IEntityTypeConfiguration<TaskEntity>
             .IsRequired();
 
         builder.Property(x => x.Status)
-            .HasDefaultValue(TaskStatus.Todo);
+            .HasDefaultValue(TaskStatus.Todo)
+            .HasSentinel((TaskStatus)0);
 
         builder.Property(x => x.Priority)
-            .HasDefaultValue(TaskPriority.Medium);
+            .HasDefaultValue(TaskPriority.Medium)
+            .HasSentinel((TaskPriority)0);
 
         builder.Property(x => x.TicketType)
-            .HasDefaultValue(TicketType.Task);
+            .HasDefaultValue(TicketType.Task)
+            .HasSentinel((TicketType)0);
 
         builder.Property(x => x.OrderIndex)
             .HasDefaultValue(0);

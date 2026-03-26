@@ -13,7 +13,7 @@ public sealed class SubtaskConfiguration : IEntityTypeConfiguration<Subtask>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(x => x.TaskId)
             .IsRequired();

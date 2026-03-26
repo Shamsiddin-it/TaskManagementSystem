@@ -90,7 +90,7 @@ public class UserSettingsService(ApplicationDbContext dbContext) : IUserSettings
     public async Task<Response<GetUserSettingsDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.Id == id);
+        var item = all.Data?.FirstOrDefault(x => x.Id == id);
         if (item == null)
         {
             return new Response<GetUserSettingsDto>(HttpStatusCode.NotFound, "UserSettings not found");
@@ -102,7 +102,7 @@ public class UserSettingsService(ApplicationDbContext dbContext) : IUserSettings
     public async Task<Response<GetUserSettingsDto>> GetByUserIdAsync(string userId)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.UserId == userId);
+        var item = all.Data?.FirstOrDefault(x => x.UserId == userId);
         if (item == null)
         {
             return new Response<GetUserSettingsDto>(HttpStatusCode.NotFound, "UserSettings not found");

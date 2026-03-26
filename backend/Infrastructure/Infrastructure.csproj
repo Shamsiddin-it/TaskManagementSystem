@@ -29,46 +29,13 @@
 
 
   <ItemGroup>
+    <Compile Remove="DTOs\JoinRequestDtos.cs" />
+    <Compile Remove="DTOs\TaskDtos.cs" />
+    <Compile Remove="Configurations\TaskItemConfiguration.cs" />
     <Compile Remove="Response\**\*.cs" />
     <Compile Remove="Data\AppDbContext.cs" />
     <Compile Remove="Data\Migrations\**\*.cs" />
-    <Compile Remove="Configurations\BudgetRecordConfiguration.cs" />
-    <Compile Remove="Configurations\EmployerNotificationConfiguration.cs" />
-    <Compile Remove="Configurations\MemberSkillConfiguration.cs" />
-    <Compile Remove="Configurations\OrgBudgetConfiguration.cs" />
-    <Compile Remove="Configurations\ProjectChecklistConfiguration.cs" />
-    <Compile Remove="Configurations\ProjectCommentConfiguration.cs" />
-    <Compile Remove="Configurations\ProjectConfiguration.cs" />
-    <Compile Remove="Configurations\ProjectMemberConfiguration.cs" />
-    <Compile Remove="Configurations\ProjectRiskConfiguration.cs" />
-    <Compile Remove="Configurations\ProjectTimelineConfiguration.cs" />
-    <Compile Remove="Configurations\TaskItemConfiguration.cs" />
-    <Compile Remove="Configurations\TeamConfiguration.cs" />
-    <Compile Remove="Configurations\UserConfiguration.cs" />
-    <Compile Remove="Configurations\WorkspaceIntegrationConfiguration.cs" />
-    <Compile Remove="Configurations\WorkspaceSettingsConfiguration.cs" />
-    <Compile Remove="Services\AuthService.cs" />
-    <Compile Remove="Services\BudgetService.cs" />
-    <Compile Remove="Services\EmployerNotificationService.cs" />
-    <Compile Remove="Services\ProjectMemberService.cs" />
-    <Compile Remove="Services\ProjectRiskService.cs" />
-    <Compile Remove="Services\ProjectService.cs" />
-    <Compile Remove="Services\ReportService.cs" />
-    <Compile Remove="Services\TeamService.cs" />
-    <Compile Remove="Services\TimelineService.cs" />
-    <Compile Remove="Services\UserService.cs" />
-    <Compile Remove="Services\WorkspaceService.cs" />
-    <Compile Remove="INterfaces\IAuthService.cs" />
-    <Compile Remove="INterfaces\IBUdgetService.cs" />
-    <Compile Remove="INterfaces\IEmployerNOtificationService.cs" />
-    <Compile Remove="INterfaces\IProjectEiskService.cs" />
-    <Compile Remove="INterfaces\IProjectMemberService.cs" />
-    <Compile Remove="INterfaces\IProjectService.cs" />
-    <Compile Remove="INterfaces\IReportService.cs" />
-    <Compile Remove="INterfaces\ITeamService.cs" />
-    <Compile Remove="INterfaces\IteamLineService.cs" />
-    <Compile Remove="INterfaces\IUserService.cs" />
-    <Compile Remove="INterfaces\IWorkspaceService.cs" />
+    <Compile Remove="Migrations\**\*.cs" />
   </ItemGroup>
 
 </Project>

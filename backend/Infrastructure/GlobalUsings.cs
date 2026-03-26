@@ -2,6 +2,8 @@ global using System.IdentityModel.Tokens.Jwt;
 global using System.Net;
 global using System.Security.Claims;
 global using BCrypt.Net;
+global using Domain.Enums;
+global using Domain.Models;
 global using System.Text;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;

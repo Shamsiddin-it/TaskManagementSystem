@@ -13,7 +13,7 @@ public sealed class TaskTagConfiguration : IEntityTypeConfiguration<TaskTag>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(x => x.TaskId)
             .IsRequired();
@@ -22,7 +22,7 @@ public sealed class TaskTagConfiguration : IEntityTypeConfiguration<TaskTag>
             .IsRequired();
 
         builder.Property(x => x.AssignedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.HasIndex(x => new { x.TaskId, x.TagId })
             .IsUnique();

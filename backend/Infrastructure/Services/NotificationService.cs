@@ -103,7 +103,7 @@ public class NotificationService(ApplicationDbContext dbContext) : INotification
     public async Task<Response<GetNotificationDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.Id == id);
+        var item = all.Data?.FirstOrDefault(x => x.Id == id);
         if (item == null)
         {
             return new Response<GetNotificationDto>(HttpStatusCode.NotFound, "Notification not found");

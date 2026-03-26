@@ -102,7 +102,7 @@ public class DaySummaryService(ApplicationDbContext dbContext) : IDaySummaryServ
     public async Task<Response<GetDaySummaryDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.Id == id);
+        var item = all.Data?.FirstOrDefault(x => x.Id == id);
         if (item == null)
         {
             return new Response<GetDaySummaryDto>(HttpStatusCode.NotFound, "DaySummary not found");

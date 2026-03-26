@@ -101,7 +101,7 @@ public class InvitationService(ApplicationDbContext dbContext) : IInvitationServ
             {
                 TeamId = invitation.TeamId,
                 UserId = invitation.UserId,
-                DevRole = "fullstack",
+                DevRole = DevRole.Fullstack,
                 JoinedAt = DateTime.UtcNow,
                 IsActive = true
             });
@@ -176,7 +176,7 @@ public class InvitationService(ApplicationDbContext dbContext) : IInvitationServ
     public async Task<Response<GetInvitationDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.Id == id);
+        var item = all.Data?.FirstOrDefault(x => x.Id == id);
         if (item == null)
         {
             return new Response<GetInvitationDto>(HttpStatusCode.NotFound, "Invitation not found");

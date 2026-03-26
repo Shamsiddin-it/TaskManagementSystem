@@ -49,6 +49,9 @@ public class Task : BaseEntity
     // Дедлайн задачи. Nullable.
     // default: null
 
+    public DateTime? ScheduledStart{get;set;}
+    public DateTime? ScheduledEnd{get;set;}
+
     public int? EstimatedHours{get;set;}
     // Оценочное время в часах. Nullable.
     // default: null

@@ -116,7 +116,7 @@ public class AttachmentService(ApplicationDbContext dbContext) : IAttachmentServ
     public async Task<Response<GetAttachmentDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.Id == id);
+        var item = all.Data?.FirstOrDefault(x => x.Id == id);
         if (item == null)
         {
             return new Response<GetAttachmentDto>(HttpStatusCode.NotFound, "Attachment not found");

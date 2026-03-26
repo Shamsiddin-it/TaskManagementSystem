@@ -13,7 +13,7 @@ public sealed class SprintConfiguration : IEntityTypeConfiguration<Sprint>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(x => x.TeamId)
             .IsRequired();
@@ -26,7 +26,8 @@ public sealed class SprintConfiguration : IEntityTypeConfiguration<Sprint>
             .IsRequired();
 
         builder.Property(x => x.Status)
-            .HasDefaultValue(SprintStatus.Planning);
+            .HasDefaultValue(SprintStatus.Planning)
+            .HasSentinel((SprintStatus)0);
 
         builder.Property(x => x.StartDate)
             .IsRequired();
@@ -46,7 +47,7 @@ public sealed class SprintConfiguration : IEntityTypeConfiguration<Sprint>
         builder.HasIndex(x => new { x.TeamId, x.Number })
             .IsUnique();
 
-        builder.HasCheckConstraint("CK_Sprints_EndDateAfterStartDate", "[EndDate] > [StartDate]");
+        builder.HasCheckConstraint("CK_Sprints_EndDateAfterStartDate", "\"EndDate\" > \"StartDate\"");
 
         builder.HasOne(x => x.Team)
             .WithMany()

@@ -26,14 +26,14 @@ public class TaskService : ITaskService
         _ticketCodeGenerator = ticketCodeGenerator;
     }
 
-    public async System.Threading.Tasks.Task<Response<GetTaskDto>> CreateAsync(InsertTaskDto dto)
+    public async System.Threading.Tasks.Task<Response<Application.DTOs.GetTaskDto>> CreateAsync(Application.DTOs.CreateTaskDto dto)
     {
         try
         {
-            if (dto == null) return new Response<GetTaskDto>(HttpStatusCode.BadRequest, "dto is null");
+            if (dto == null) return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.BadRequest, "dto is null");
 
             var entity = _mapper.Map<TaskEntity>(dto);
-            entity.TicketCode = await _ticketCodeGenerator.GenerateTicketCodeAsync(dto.TeamId, dto.TicketType);
+            entity.TicketCode = await _ticketCodeGenerator.GenerateTicketCodeAsync(dto.TeamId, TicketType.Task);
             entity.Status = TaskStatus.Todo;
             entity.IsBlocked = false;
             entity.IsArchived = false;
@@ -48,46 +48,46 @@ public class TaskService : ITaskService
 
             CacheKeyStore.RemoveEntity(_cache, EntityName);
             var idKey = CacheKeyHelper.BuildIdKey(EntityName, entity.Id);
-            var resDto = _mapper.Map<GetTaskDto>(entity);
+            var resDto = _mapper.Map<Application.DTOs.GetTaskDto>(entity);
             _cache.Set(idKey, resDto, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, idKey);
 
-            return new Response<GetTaskDto>(HttpStatusCode.OK, "created", resDto);
+            return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.OK, "created", resDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "CreateAsync failed");
-            return new Response<GetTaskDto>(HttpStatusCode.InternalServerError, ex.Message);
+            return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.InternalServerError, ex.Message);
         }
     }
 
-    public async System.Threading.Tasks.Task<Response<GetTaskDto>> GetByIdAsync(Guid id)
+    public async System.Threading.Tasks.Task<Response<Application.DTOs.GetTaskDto>> GetByIdAsync(Guid id)
     {
         try
         {
             var idKey = CacheKeyHelper.BuildIdKey(EntityName, id);
-            if (_cache.TryGetValue(idKey, out GetTaskDto cached))
+            if (_cache.TryGetValue(idKey, out Application.DTOs.GetTaskDto cached))
             {
-                return new Response<GetTaskDto>(HttpStatusCode.OK, "ok", cached);
+                return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.OK, "ok", cached);
             }
 
             var entity = await _db.Tasks.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-            if (entity == null) return new Response<GetTaskDto>(HttpStatusCode.NotFound, "not found");
+            if (entity == null) return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.NotFound, "not found");
 
-            var dto = _mapper.Map<GetTaskDto>(entity);
+            var dto = _mapper.Map<Application.DTOs.GetTaskDto>(entity);
             _cache.Set(idKey, dto, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, idKey);
 
-            return new Response<GetTaskDto>(HttpStatusCode.OK, "ok", dto);
+            return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.OK, "ok", dto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "GetByIdAsync failed");
-            return new Response<GetTaskDto>(HttpStatusCode.InternalServerError, ex.Message);
+            return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.InternalServerError, ex.Message);
         }
     }
 
-    public async System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetAllAsync(TaskFilter filter, PaginationFilter pagination)
+    public async System.Threading.Tasks.Task<Response<PagedResult<Application.DTOs.GetTaskDto>>> GetAllAsync(TaskFilter filter, PaginationFilter pagination)
     {
         try
         {
@@ -96,9 +96,9 @@ public class TaskService : ITaskService
             pagination.Normalize();
 
             var cacheKey = CacheKeyHelper.BuildListKey(EntityName, filter, pagination);
-            if (_cache.TryGetValue(cacheKey, out PagedResult<GetTaskDto> cached))
+            if (_cache.TryGetValue(cacheKey, out PagedResult<Application.DTOs.GetTaskDto> cached))
             {
-                return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.OK, "ok", cached);
+                return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.OK, "ok", cached);
             }
 
             IQueryable<TaskEntity> query = _db.Tasks.AsNoTracking();
@@ -120,10 +120,10 @@ public class TaskService : ITaskService
                 .Take(pagination.PageSize)
                 .ToListAsync();
 
-            var dtoItems = _mapper.Map<List<GetTaskDto>>(items);
+            var dtoItems = _mapper.Map<List<Application.DTOs.GetTaskDto>>(items);
             var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize);
 
-            var result = new PagedResult<GetTaskDto>
+            var result = new PagedResult<Application.DTOs.GetTaskDto>
             {
                 Items = dtoItems,
                 Page = pagination.Page,
@@ -135,35 +135,34 @@ public class TaskService : ITaskService
             _cache.Set(cacheKey, result, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, cacheKey);
 
-            return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.OK, "ok", result);
+            return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.OK, "ok", result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "GetAllAsync failed");
-            return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.InternalServerError, ex.Message);
+            return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.InternalServerError, ex.Message);
         }
     }
 
-    public async System.Threading.Tasks.Task<Response<GetTaskDto>> UpdateAsync(Guid id, UpdateTaskDto dto)
+    public async System.Threading.Tasks.Task<Response<Application.DTOs.GetTaskDto>> UpdateAsync(Guid id, Application.DTOs.UpdateTaskDto dto)
     {
         try
         {
-            if (dto == null) return new Response<GetTaskDto>(HttpStatusCode.BadRequest, "dto is null");
+            if (dto == null) return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.BadRequest, "dto is null");
 
             var entity = await _db.Tasks.FirstOrDefaultAsync(x => x.Id == id);
-            if (entity == null) return new Response<GetTaskDto>(HttpStatusCode.NotFound, "not found");
+            if (entity == null) return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.NotFound, "not found");
 
-            entity.Title = dto.Title;
-            entity.Description = dto.Description;
-            entity.TeamId = dto.TeamId;
-            entity.AssignedToId = dto.AssignedToId;
-            entity.CreatedById = dto.CreatedById;
-            entity.SprintId = dto.SprintId;
-            entity.Priority = dto.Priority;
-            entity.TicketType = dto.TicketType;
-            entity.Deadline = dto.Deadline;
-            entity.EstimatedHours = dto.EstimatedHours;
-            entity.StoryPoints = dto.StoryPoints;
+            if (dto.Title != null) entity.Title = dto.Title;
+            if (dto.Description != null) entity.Description = dto.Description;
+            if (dto.AssignedTo != null) entity.AssignedToId = dto.AssignedTo;
+            if (dto.Status != null && Enum.TryParse<TaskStatus>(dto.Status, true, out var status)) entity.Status = status;
+            if (dto.Priority != null && Enum.TryParse<TaskPriority>(dto.Priority, true, out var priority)) entity.Priority = priority;
+            if (dto.Deadline.HasValue) entity.Deadline = dto.Deadline;
+            if (dto.ScheduledStart.HasValue) entity.ScheduledStart = dto.ScheduledStart;
+            if (dto.ScheduledEnd.HasValue) entity.ScheduledEnd = dto.ScheduledEnd;
+            if (dto.EstimatedHours.HasValue) entity.EstimatedHours = dto.EstimatedHours;
+            if (dto.OrderIndex.HasValue) entity.OrderIndex = dto.OrderIndex.Value;
 
             await _db.SaveChangesAsync();
 
@@ -174,16 +173,16 @@ public class TaskService : ITaskService
 
             CacheKeyStore.RemoveEntity(_cache, EntityName);
             var idKey = CacheKeyHelper.BuildIdKey(EntityName, entity.Id);
-            var resDto = _mapper.Map<GetTaskDto>(entity);
+            var resDto = _mapper.Map<Application.DTOs.GetTaskDto>(entity);
             _cache.Set(idKey, resDto, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, idKey);
 
-            return new Response<GetTaskDto>(HttpStatusCode.OK, "updated", resDto);
+            return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.OK, "updated", resDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "UpdateAsync failed");
-            return new Response<GetTaskDto>(HttpStatusCode.InternalServerError, ex.Message);
+            return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.InternalServerError, ex.Message);
         }
     }
 
@@ -241,11 +240,11 @@ public class TaskService : ITaskService
         }
     }
 
-    public System.Threading.Tasks.Task<Response<GetTaskDto>> CreateTaskAsync(InsertTaskDto dto) => CreateAsync(dto);
+    public System.Threading.Tasks.Task<Response<Application.DTOs.GetTaskDto>> CreateTaskAsync(Application.DTOs.CreateTaskDto dto) => CreateAsync(dto);
 
-    public System.Threading.Tasks.Task<Response<GetTaskDto>> GetTaskByIdAsync(Guid id) => GetByIdAsync(id);
+    public System.Threading.Tasks.Task<Response<Application.DTOs.GetTaskDto>> GetTaskByIdAsync(Guid id) => GetByIdAsync(id);
 
-    public async System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetTeamTasksAsync(Guid teamId, TaskQueryFilter filter)
+    public async System.Threading.Tasks.Task<Response<PagedResult<Application.DTOs.GetTaskDto>>> GetTeamTasksAsync(Guid teamId, TaskQueryFilter filter)
     {
         try
         {
@@ -253,9 +252,9 @@ public class TaskService : ITaskService
             filter.Normalize();
 
             var cacheKey = CacheKeyHelper.BuildListKey($"{EntityName}:team:{teamId}", filter, filter);
-            if (_cache.TryGetValue(cacheKey, out PagedResult<GetTaskDto> cached))
+            if (_cache.TryGetValue(cacheKey, out PagedResult<Application.DTOs.GetTaskDto> cached))
             {
-                return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.OK, "ok", cached);
+                return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.OK, "ok", cached);
             }
 
             IQueryable<TaskEntity> query = _db.Tasks.AsNoTracking().Where(x => x.TeamId == teamId);
@@ -274,10 +273,10 @@ public class TaskService : ITaskService
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            var dtoItems = _mapper.Map<List<GetTaskDto>>(items);
+            var dtoItems = _mapper.Map<List<Application.DTOs.GetTaskDto>>(items);
             var totalPages = (int)Math.Ceiling(totalCount / (double)filter.PageSize);
 
-            var result = new PagedResult<GetTaskDto>
+            var result = new PagedResult<Application.DTOs.GetTaskDto>
             {
                 Items = dtoItems,
                 Page = filter.Page,
@@ -289,16 +288,16 @@ public class TaskService : ITaskService
             _cache.Set(cacheKey, result, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, cacheKey);
 
-            return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.OK, "ok", result);
+            return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.OK, "ok", result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "GetTeamTasksAsync failed");
-            return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.InternalServerError, ex.Message);
+            return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.InternalServerError, ex.Message);
         }
     }
 
-    public async System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetBacklogTasksAsync(Guid teamId, PaginationFilter filter)
+    public async System.Threading.Tasks.Task<Response<PagedResult<Application.DTOs.GetTaskDto>>> GetBacklogTasksAsync(Guid teamId, PaginationFilter filter)
     {
         try
         {
@@ -306,9 +305,9 @@ public class TaskService : ITaskService
             filter.Normalize();
 
             var cacheKey = CacheKeyHelper.BuildListKey($"{EntityName}:backlog:{teamId}", new { }, filter);
-            if (_cache.TryGetValue(cacheKey, out PagedResult<GetTaskDto> cached))
+            if (_cache.TryGetValue(cacheKey, out PagedResult<Application.DTOs.GetTaskDto> cached))
             {
-                return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.OK, "ok", cached);
+                return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.OK, "ok", cached);
             }
 
             IQueryable<TaskEntity> query = _db.Tasks.AsNoTracking()
@@ -321,10 +320,10 @@ public class TaskService : ITaskService
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            var dtoItems = _mapper.Map<List<GetTaskDto>>(items);
+            var dtoItems = _mapper.Map<List<Application.DTOs.GetTaskDto>>(items);
             var totalPages = (int)Math.Ceiling(totalCount / (double)filter.PageSize);
 
-            var result = new PagedResult<GetTaskDto>
+            var result = new PagedResult<Application.DTOs.GetTaskDto>
             {
                 Items = dtoItems,
                 Page = filter.Page,
@@ -336,16 +335,16 @@ public class TaskService : ITaskService
             _cache.Set(cacheKey, result, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, cacheKey);
 
-            return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.OK, "ok", result);
+            return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.OK, "ok", result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "GetBacklogTasksAsync failed");
-            return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.InternalServerError, ex.Message);
+            return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.InternalServerError, ex.Message);
         }
     }
 
-    public System.Threading.Tasks.Task<Response<GetTaskDto>> UpdateTaskAsync(Guid id, UpdateTaskDto dto) => UpdateAsync(id, dto);
+    public System.Threading.Tasks.Task<Response<Application.DTOs.GetTaskDto>> UpdateTaskAsync(Guid id, Application.DTOs.UpdateTaskDto dto) => UpdateAsync(id, dto);
 
     public System.Threading.Tasks.Task<Response<bool>> UpdateTaskStatusAsync(Guid id, TaskStatus status) => SetStatusAsync(id, status);
 
@@ -469,7 +468,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetBlockedTasksAsync(Guid teamId, PaginationFilter filter)
+    public async System.Threading.Tasks.Task<Response<PagedResult<Application.DTOs.GetTaskDto>>> GetBlockedTasksAsync(Guid teamId, PaginationFilter filter)
     {
         try
         {
@@ -477,9 +476,9 @@ public class TaskService : ITaskService
             filter.Normalize();
 
             var cacheKey = CacheKeyHelper.BuildListKey($"{EntityName}:blocked:{teamId}", new { }, filter);
-            if (_cache.TryGetValue(cacheKey, out PagedResult<GetTaskDto> cached))
+            if (_cache.TryGetValue(cacheKey, out PagedResult<Application.DTOs.GetTaskDto> cached))
             {
-                return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.OK, "ok", cached);
+                return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.OK, "ok", cached);
             }
 
             IQueryable<TaskEntity> query = _db.Tasks.AsNoTracking()
@@ -492,10 +491,10 @@ public class TaskService : ITaskService
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            var dtoItems = _mapper.Map<List<GetTaskDto>>(items);
+            var dtoItems = _mapper.Map<List<Application.DTOs.GetTaskDto>>(items);
             var totalPages = (int)Math.Ceiling(totalCount / (double)filter.PageSize);
 
-            var result = new PagedResult<GetTaskDto>
+            var result = new PagedResult<Application.DTOs.GetTaskDto>
             {
                 Items = dtoItems,
                 Page = filter.Page,
@@ -507,12 +506,12 @@ public class TaskService : ITaskService
             _cache.Set(cacheKey, result, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, cacheKey);
 
-            return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.OK, "ok", result);
+            return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.OK, "ok", result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "GetBlockedTasksAsync failed");
-            return new Response<PagedResult<GetTaskDto>>(HttpStatusCode.InternalServerError, ex.Message);
+            return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.InternalServerError, ex.Message);
         }
     }
 

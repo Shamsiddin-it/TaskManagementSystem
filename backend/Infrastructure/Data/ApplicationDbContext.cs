@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TaskEntity = Domain.Models.Task;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
@@ -16,7 +16,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<TaskTag> TaskTags => Set<TaskTag>();
     public DbSet<TeamMember> TeamMembers => Set<TeamMember>();
     public DbSet<Team> Teams => Set<Team>();
-    public DbSet<Absence> Absences => Set<Absence>();
     // public DbSet<User> Users => Set<User>();
     public DbSet<TaskComment> TaskComments => Set<TaskComment>();
     public DbSet<TaskAttachment> TaskAttachments => Set<TaskAttachment>();
@@ -34,7 +33,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<WorkspaceSettings> WorkspaceSettings { get; set; }
     public DbSet<WorkspaceIntegration> WorkspaceIntegrations { get; set; }
     public DbSet<MemberSkill> MemberSkills { get; set; }
-    public DbSet<TaskItem> TaskItems { get; set; }
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<JoinRequest> JoinRequests => Set<JoinRequest>();
     public DbSet<Absence> Absences => Set<Absence>();
@@ -56,48 +54,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfiguration(new UserConfiguration());
-        modelBuilder.ApplyConfiguration(new ProjectConfiguration());
-        modelBuilder.ApplyConfiguration(new TeamConfiguration());
-        modelBuilder.ApplyConfiguration(new ProjectMemberConfiguration());
-        modelBuilder.ApplyConfiguration(new ProjectRiskConfiguration());
-        modelBuilder.ApplyConfiguration(new ProjectTimelineConfiguration());
-        modelBuilder.ApplyConfiguration(new ProjectCommentConfiguration());
-        modelBuilder.ApplyConfiguration(new ProjectChecklistConfiguration());
-        modelBuilder.ApplyConfiguration(new OrgBudgetConfiguration());
-        modelBuilder.ApplyConfiguration(new BudgetRecordConfiguration());
-        modelBuilder.ApplyConfiguration(new EmployerNotificationConfiguration());
-        modelBuilder.ApplyConfiguration(new WorkspaceSettingsConfiguration());
-        modelBuilder.ApplyConfiguration(new WorkspaceIntegrationConfiguration());
-        modelBuilder.ApplyConfiguration(new MemberSkillConfiguration());
-        modelBuilder.ApplyConfiguration(new TaskItemConfiguration());
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        modelBuilder.Ignore<TaskItem>();
         // // User
         // modelBuilder.Entity<User>(entity =>
         // {
         //     entity.HasKey(e => e.Id);
         //     entity.HasIndex(e => e.Email).IsUnique();
         // });
-
-        // Project
-        modelBuilder.Entity<Project>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasOne(e => e.Employer)
-                .WithMany()
-                .HasForeignKey(e => e.EmployerId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // Team
-        modelBuilder.Entity<Team>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasOne(e => e.Project)
-                .WithMany()
-                .HasForeignKey(e => e.ProjectId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
 
         // TeamMember
         modelBuilder.Entity<TeamMember>(entity =>
@@ -112,17 +76,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(e => new { e.TeamId, e.UserId }).IsUnique();
-        });
-
-        // Task (full name avoids clash with System.Threading.Tasks.Task)
-        modelBuilder.Entity<Domain.Models.Task>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.ToTable("Tasks");
-            entity.HasOne<Team>()
-                .WithMany()
-                .HasForeignKey(e => e.TeamId)
-                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Invitation
@@ -188,16 +141,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // Subtask
-        modelBuilder.Entity<Subtask>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasOne(e => e.Task)
-                .WithMany()
-                .HasForeignKey(e => e.TaskId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -326,16 +269,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.HasOne(e => e.Badge)
                 .WithMany()
                 .HasForeignKey(e => e.BadgeId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // TaskTag
-        modelBuilder.Entity<TaskTag>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasOne(e => e.Task)
-                .WithMany()
-                .HasForeignKey(e => e.TaskId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

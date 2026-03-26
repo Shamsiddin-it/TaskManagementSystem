@@ -86,7 +86,7 @@ public class AbsenceService(ApplicationDbContext dbContext) : IAbsenceService
     public async Task<Response<GetAbsenceDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.Id == id);
+        var item = all.Data?.FirstOrDefault(x => x.Id == id);
         if (item == null)
         {
             return new Response<GetAbsenceDto>(HttpStatusCode.NotFound, "Absence not found");

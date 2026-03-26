@@ -148,7 +148,7 @@ public class FocusSessionService(ApplicationDbContext dbContext) : IFocusSession
     public async Task<Response<GetFocusSessionDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.Id == id);
+        var item = all.Data?.FirstOrDefault(x => x.Id == id);
         if (item == null)
         {
             return new Response<GetFocusSessionDto>(HttpStatusCode.NotFound, "FocusSession not found");

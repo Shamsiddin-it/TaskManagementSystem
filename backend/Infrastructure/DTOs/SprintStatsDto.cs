@@ -1,6 +1,6 @@
 public class SprintStatsDto
 {
-    public int SprintId { get; set; }
+    public Guid SprintId { get; set; }
     public int PlannedPoints { get; set; }
     public int CompletedPoints { get; set; }
     public int SpilloverPoints { get; set; }

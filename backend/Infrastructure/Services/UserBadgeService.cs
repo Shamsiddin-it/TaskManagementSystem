@@ -103,7 +103,7 @@ public class UserBadgeService(ApplicationDbContext dbContext) : IUserBadgeServic
     public async Task<Response<GetUserBadgeDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.Id == id);
+        var item = all.Data?.FirstOrDefault(x => x.Id == id);
         if (item == null)
         {
             return new Response<GetUserBadgeDto>(HttpStatusCode.NotFound, "UserBadge not found");

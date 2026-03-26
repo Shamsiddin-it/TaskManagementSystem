@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, ArrowRight, Github, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5125';
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,13 +18,13 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/Auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.Ok && response.status !== 200) {
+      if (!response.ok) {
         throw new Error('Invalid credentials');
       }
 

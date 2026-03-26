@@ -6,9 +6,9 @@ namespace Infrastructure.Services;
 
 internal static class ServiceMappingHelper
 {
-    public static GetUserDto ToGetUserDto(ApplicationUser user)
+    public static Application.DTOs.GetUserDto ToGetUserDto(ApplicationUser user)
     {
-        return new GetUserDto
+        return new Application.DTOs.GetUserDto
         {
             Id = user.Id,
             FullName = user.FullName,
@@ -21,9 +21,9 @@ internal static class ServiceMappingHelper
         };
     }
 
-    public static GetProjectDto ToGetProjectDto(Project project)
+    public static Application.DTOs.GetProjectDto ToGetProjectDto(Project project)
     {
-        return new GetProjectDto
+        return new Application.DTOs.GetProjectDto
         {
             Id = project.Id,
             Title = project.Title,
@@ -37,9 +37,9 @@ internal static class ServiceMappingHelper
         };
     }
 
-    public static GetProjectDto ToGetProjectDto(Project project, GetUserDto employerDto)
+    public static Application.DTOs.GetProjectDto ToGetProjectDto(Project project, Application.DTOs.GetUserDto employerDto)
     {
-        return new GetProjectDto
+        return new Application.DTOs.GetProjectDto
         {
             Id = project.Id,
             Title = project.Title,
@@ -53,9 +53,9 @@ internal static class ServiceMappingHelper
         };
     }
 
-    public static GetTeamDto ToGetTeamDto(Team team, GetProjectDto projectDto, GetUserDto? teamLeadDto)
+    public static Application.DTOs.GetTeamDto ToGetTeamDto(Team team, Application.DTOs.GetProjectDto projectDto, Application.DTOs.GetUserDto? teamLeadDto)
     {
-        return new GetTeamDto
+        return new Application.DTOs.GetTeamDto
         {
             Id = team.Id,
             ProjectId = team.ProjectId,
@@ -68,9 +68,9 @@ internal static class ServiceMappingHelper
         };
     }
 
-    public static GetTaskDto ToGetTaskDto(Domain.Models.Task task, GetTeamDto teamDto, GetUserDto? assignedToDto, GetUserDto? createdByDto)
+    public static Application.DTOs.GetTaskDto ToGetTaskDto(Domain.Models.Task task, Application.DTOs.GetTeamDto teamDto, Application.DTOs.GetUserDto? assignedToDto, Application.DTOs.GetUserDto? createdByDto)
     {
-        return new GetTaskDto
+        return new Application.DTOs.GetTaskDto
         {
             Id = task.Id,
             Title = task.Title,
@@ -93,14 +93,14 @@ internal static class ServiceMappingHelper
         };
     }
 
-    public static GetTeamDto ToGetTeamDto(Team team, Dictionary<Guid, Project> projects, Dictionary<string, ApplicationUser> users)
+    public static Application.DTOs.GetTeamDto ToGetTeamDto(Team team, Dictionary<Guid, Project> projects, Dictionary<string, ApplicationUser> users)
     {
         var project = projects[team.ProjectId];
         var employerDto = users.TryGetValue(project.EmployerId, out var employerUser)
             ? ToGetUserDto(employerUser)
-            : new GetUserDto { Id = project.EmployerId };
+            : new Application.DTOs.GetUserDto { Id = project.EmployerId };
 
-        GetUserDto? teamLeadDto = null;
+        Application.DTOs.GetUserDto? teamLeadDto = null;
         if (!string.IsNullOrWhiteSpace(team.TeamLeadId) && users.TryGetValue(team.TeamLeadId, out var teamLeadUser))
         {
             teamLeadDto = ToGetUserDto(teamLeadUser);
@@ -109,18 +109,18 @@ internal static class ServiceMappingHelper
         return ToGetTeamDto(team, ToGetProjectDto(project, employerDto), teamLeadDto);
     }
 
-    public static GetTaskDto ToGetTaskDto(Domain.Models.Task task, Dictionary<Guid, Team> teams, Dictionary<Guid, Project> projects, Dictionary<string, ApplicationUser> users)
+    public static Application.DTOs.GetTaskDto ToGetTaskDto(Domain.Models.Task task, Dictionary<Guid, Team> teams, Dictionary<Guid, Project> projects, Dictionary<string, ApplicationUser> users)
     {
         var team = teams[task.TeamId];
         var teamDto = ToGetTeamDto(team, projects, users);
 
-        GetUserDto? assignedToDto = null;
+        Application.DTOs.GetUserDto? assignedToDto = null;
         if (!string.IsNullOrWhiteSpace(task.AssignedToId) && users.TryGetValue(task.AssignedToId, out var assignedUser))
         {
             assignedToDto = ToGetUserDto(assignedUser);
         }
 
-        GetUserDto? createdByDto = null;
+        Application.DTOs.GetUserDto? createdByDto = null;
         if (!string.IsNullOrWhiteSpace(task.CreatedById) && users.TryGetValue(task.CreatedById, out var createdByUser))
         {
             createdByDto = ToGetUserDto(createdByUser);
@@ -129,9 +129,9 @@ internal static class ServiceMappingHelper
         return ToGetTaskDto(task, teamDto, assignedToDto, createdByDto);
     }
 
-    public static GetBadgeDto ToGetBadgeDto(Badge badge)
+    public static Application.DTOs.GetBadgeDto ToGetBadgeDto(Badge badge)
     {
-        return new GetBadgeDto
+        return new Application.DTOs.GetBadgeDto
         {
             Id = badge.Id,
             Name = badge.Name,

@@ -117,7 +117,7 @@ public class TaskCommentService(ApplicationDbContext dbContext) : ITaskCommentSe
     public async Task<Response<GetTaskCommentDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.Id == id);
+        var item = all.Data?.FirstOrDefault(x => x.Id == id);
         if (item == null)
         {
             return new Response<GetTaskCommentDto>(HttpStatusCode.NotFound, "TaskComment not found");

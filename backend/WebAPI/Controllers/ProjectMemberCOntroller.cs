@@ -13,8 +13,8 @@ public class ProjectMemberController : ControllerBase
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpDelete("{userId:guid}")]
-    public async Task<IActionResult> RemoveMember(Guid projectId, Guid userId)
+    [HttpDelete("{userId}")]
+    public async Task<IActionResult> RemoveMember(Guid projectId, string userId)
     {
         var res = await _service.RemoveMemberAsync(projectId, userId);
         return StatusCode(res.StatusCode, res);
@@ -27,8 +27,8 @@ public class ProjectMemberController : ControllerBase
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpPatch("{userId:guid}/role")]
-    public async Task<IActionResult> UpdateRole(Guid projectId, Guid userId, [FromBody] string role)
+    [HttpPatch("{userId}/role")]
+    public async Task<IActionResult> UpdateRole(Guid projectId, string userId, [FromBody] string role)
     {
         var res = await _service.UpdateMemberRoleAsync(projectId, userId, role);
         return StatusCode(res.StatusCode, res);

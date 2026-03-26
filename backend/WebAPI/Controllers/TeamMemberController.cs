@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Domain.Models;
 using Task = System.Threading.Tasks.Task;
 
 [ApiController]

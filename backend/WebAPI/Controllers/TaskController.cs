@@ -27,14 +27,14 @@ public class TaskController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] InsertTaskDto dto)
+    public async Task<IActionResult> Create([FromBody] Application.DTOs.CreateTaskDto dto)
     {
         var res = await _service.CreateAsync(dto);
         return StatusCode(res.StatusCode, res);
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTaskDto dto)
+    public async Task<IActionResult> Update(Guid id, [FromBody] Application.DTOs.UpdateTaskDto dto)
     {
         var res = await _service.UpdateAsync(id, dto);
         return StatusCode(res.StatusCode, res);

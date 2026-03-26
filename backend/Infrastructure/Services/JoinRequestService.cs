@@ -113,7 +113,7 @@ public class JoinRequestService(ApplicationDbContext dbContext) : IJoinRequestSe
     public async Task<Response<GetJoinRequestDto>> GetByIdAsync(Guid id)
     {
         var all = await GetAllAsync();
-        var item = all.Date?.FirstOrDefault(x => x.Id == id);
+        var item = all.Data?.FirstOrDefault(x => x.Id == id);
         if (item == null)
         {
             return new Response<GetJoinRequestDto>(HttpStatusCode.NotFound, "JoinRequest not found");

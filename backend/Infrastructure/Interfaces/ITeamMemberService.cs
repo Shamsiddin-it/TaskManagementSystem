@@ -1,3 +1,5 @@
+using Application.DTOs;
+
 public interface ITeamMemberService
 {
     Task<Response<GetTeamMemberDto>> CreateAsync(InsertTeamMemberDto dto);

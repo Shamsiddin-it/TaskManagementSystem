@@ -1,5 +1,5 @@
 public class TaskTagFilter
 {
-    public int? TaskId { get; set; }
-    public int? TagId { get; set; }
+    public Guid? TaskId { get; set; }
+    public Guid? TagId { get; set; }
 }

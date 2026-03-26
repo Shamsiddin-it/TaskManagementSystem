@@ -138,7 +138,7 @@ export default function SettingsPage() {
                 label="Team Members"
                 value={loading ? "Loading…" : memberCount != null ? String(memberCount) : "—"}
               />
-              <InfoRow label="API Base URL" value={import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"} mono />
+              <InfoRow label="API Base URL" value={import.meta.env.VITE_API_BASE_URL || "http://localhost:5125"} mono />
             </div>
           </div>
 

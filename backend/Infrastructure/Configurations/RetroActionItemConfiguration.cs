@@ -12,7 +12,7 @@ public sealed class RetroActionItemConfiguration : IEntityTypeConfiguration<Retr
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(x => x.RetroId)
             .IsRequired();
@@ -22,7 +22,8 @@ public sealed class RetroActionItemConfiguration : IEntityTypeConfiguration<Retr
             .HasMaxLength(255);
 
         builder.Property(x => x.Priority)
-            .HasDefaultValue(ActionItemPriority.Medium);
+            .HasDefaultValue(ActionItemPriority.Medium)
+            .HasSentinel((ActionItemPriority)0);
 
         builder.Property(x => x.IsDone)
             .HasDefaultValue(false);
