@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using WebApi.EmailService;
+using WebApi.Entities;
 using WebApi.Seeds;
 
 var builder = WebApplication.CreateBuilder(args);
