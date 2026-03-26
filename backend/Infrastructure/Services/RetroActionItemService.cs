@@ -1,4 +1,5 @@
 using System.Net;
+using Domain.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -45,7 +46,7 @@ public class RetroActionItemService : IRetroActionItemService
         }
     }
 
-    public async Task<Response<GetRetroActionItemDto>> GetByIdAsync(int id)
+    public async Task<Response<GetRetroActionItemDto>> GetByIdAsync(Guid id)
     {
         try
         {
@@ -89,7 +90,7 @@ public class RetroActionItemService : IRetroActionItemService
 
             if (filter.RetroId.HasValue) query = query.Where(x => x.RetroId == filter.RetroId.Value);
             if (filter.Priority.HasValue) query = query.Where(x => x.Priority == filter.Priority.Value);
-            if (filter.AssignedToId.HasValue) query = query.Where(x => x.AssignedToId == filter.AssignedToId.Value);
+            if (!string.IsNullOrEmpty(filter.AssignedToId)) query = query.Where(x => x.AssignedToId == filter.AssignedToId);
             if (filter.IsDone.HasValue) query = query.Where(x => x.IsDone == filter.IsDone.Value);
             if (filter.DueFrom.HasValue) query = query.Where(x => x.DueDate >= filter.DueFrom.Value);
             if (filter.DueTo.HasValue) query = query.Where(x => x.DueDate <= filter.DueTo.Value);
@@ -125,7 +126,7 @@ public class RetroActionItemService : IRetroActionItemService
         }
     }
 
-    public async Task<Response<GetRetroActionItemDto>> UpdateAsync(int id, UpdateRetroActionItemDto dto)
+    public async Task<Response<GetRetroActionItemDto>> UpdateAsync(Guid id, UpdateRetroActionItemDto dto)
     {
         try
         {
@@ -152,7 +153,7 @@ public class RetroActionItemService : IRetroActionItemService
         }
     }
 
-    public async Task<Response<bool>> DeleteAsync(int id)
+    public async Task<Response<bool>> DeleteAsync(Guid id)
     {
         try
         {
@@ -174,7 +175,7 @@ public class RetroActionItemService : IRetroActionItemService
         }
     }
 
-    public async Task<Response<bool>> SetDoneAsync(int id, bool isDone)
+    public async Task<Response<bool>> SetDoneAsync(Guid id, bool isDone)
     {
         try
         {

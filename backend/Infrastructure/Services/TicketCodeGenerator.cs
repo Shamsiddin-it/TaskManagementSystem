@@ -1,5 +1,6 @@
-using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
+using Domain.Models;
 
 public class TicketCodeGenerator : ITicketCodeGenerator
 {

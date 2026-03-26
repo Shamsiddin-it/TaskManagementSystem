@@ -1,7 +1,7 @@
 public class ProjectTimeline:BaseEntity
 {
     // public int Id { get; set; }
-    public int ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
     public Project Project { get; set; } = null!;
     public string PhaseName { get; set; } = string.Empty;       // "UI/UX Design", "API Integration"...
     public DateTime StartDate { get; set; }

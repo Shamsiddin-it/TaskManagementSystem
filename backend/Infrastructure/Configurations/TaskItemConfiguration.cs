@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Domain.Models;
+
 public class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
 {
     public void Configure(EntityTypeBuilder<TaskItem> builder)

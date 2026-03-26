@@ -1,10 +1,12 @@
-using Domain.Models;
+namespace Domain.Models;
+
+using TaskEntity = Domain.Models.Task;
 
 public class TaskComment : BaseEntity
 {
-    public int TaskId { get; set; }
+    public Guid TaskId { get; set; }
     public string UserId { get; set; } = null!;
     public string Message { get; set; } = null!;
-    public Task? Task { get; set; }
+    public TaskEntity? Task { get; set; }
     public ApplicationUser? User { get; set; }
 }

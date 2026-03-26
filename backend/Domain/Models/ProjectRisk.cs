@@ -1,7 +1,7 @@
 public class ProjectRisk : BaseEntity
 {
     // public Guid Id { get; set; }
-    public int ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
     public Project Project { get; set; } = null!;
     public string Description { get; set; } = string.Empty;
     public RiskSeverity Severity { get; set; }   // low | medium | high | critical

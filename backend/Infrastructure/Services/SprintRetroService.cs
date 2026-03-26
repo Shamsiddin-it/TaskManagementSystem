@@ -1,4 +1,5 @@
 using System.Net;
+using Domain.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -20,7 +21,7 @@ public class SprintRetroService : ISprintRetroService
         _logger = logger;
     }
 
-    public async Task<Response<GetSprintRetroDto>> CreateAsync(InsertSprintRetroDto dto)
+    public async System.Threading.Tasks.Task<Response<GetSprintRetroDto>> CreateAsync(InsertSprintRetroDto dto)
     {
         try
         {
@@ -45,7 +46,7 @@ public class SprintRetroService : ISprintRetroService
         }
     }
 
-    public async Task<Response<GetSprintRetroDto>> GetByIdAsync(int id)
+    public async System.Threading.Tasks.Task<Response<GetSprintRetroDto>> GetByIdAsync(Guid id)
     {
         try
         {
@@ -71,7 +72,7 @@ public class SprintRetroService : ISprintRetroService
         }
     }
 
-    public async Task<Response<PagedResult<GetSprintRetroDto>>> GetAllAsync(SprintRetroFilter filter, PaginationFilter pagination)
+    public async System.Threading.Tasks.Task<Response<PagedResult<GetSprintRetroDto>>> GetAllAsync(SprintRetroFilter filter, PaginationFilter pagination)
     {
         try
         {
@@ -88,7 +89,7 @@ public class SprintRetroService : ISprintRetroService
             IQueryable<SprintRetro> query = _db.SprintRetros.AsNoTracking();
 
             if (filter.SprintId.HasValue) query = query.Where(x => x.SprintId == filter.SprintId.Value);
-            if (filter.CreatedById.HasValue) query = query.Where(x => x.CreatedById == filter.CreatedById.Value);
+            if (filter.CreatedById != null) query = query.Where(x => x.CreatedById == filter.CreatedById);
             if (filter.CreatedFrom.HasValue) query = query.Where(x => x.CreatedAt >= filter.CreatedFrom.Value);
             if (filter.CreatedTo.HasValue) query = query.Where(x => x.CreatedAt <= filter.CreatedTo.Value);
 
@@ -123,7 +124,7 @@ public class SprintRetroService : ISprintRetroService
         }
     }
 
-    public async Task<Response<GetSprintRetroDto>> UpdateAsync(int id, UpdateSprintRetroDto dto)
+    public async System.Threading.Tasks.Task<Response<GetSprintRetroDto>> UpdateAsync(Guid id, UpdateSprintRetroDto dto)
     {
         try
         {
@@ -150,7 +151,7 @@ public class SprintRetroService : ISprintRetroService
         }
     }
 
-    public async Task<Response<bool>> DeleteAsync(int id)
+    public async System.Threading.Tasks.Task<Response<bool>> DeleteAsync(Guid id)
     {
         try
         {
@@ -172,7 +173,7 @@ public class SprintRetroService : ISprintRetroService
         }
     }
 
-    public async Task<Response<GetSprintRetroDto>> CreateRetroAsync(int sprintId, InsertSprintRetroDto dto)
+    public async System.Threading.Tasks.Task<Response<GetSprintRetroDto>> CreateRetroAsync(Guid sprintId, InsertSprintRetroDto dto)
     {
         try
         {
@@ -206,7 +207,7 @@ public class SprintRetroService : ISprintRetroService
         }
     }
 
-    public async Task<Response<GetSprintRetroDto>> GetRetroAsync(int sprintId)
+    public async System.Threading.Tasks.Task<Response<GetSprintRetroDto>> GetRetroAsync(Guid sprintId)
     {
         try
         {
@@ -232,12 +233,12 @@ public class SprintRetroService : ISprintRetroService
         }
     }
 
-    public Task<Response<GetSprintRetroDto>> UpdateRetroAsync(int id, UpdateSprintRetroDto dto)
+    public System.Threading.Tasks.Task<Response<GetSprintRetroDto>> UpdateRetroAsync(Guid id, UpdateSprintRetroDto dto)
     {
         return UpdateAsync(id, dto);
     }
 
-    public async Task<Response<GetRetroActionItemDto>> CreateActionItemAsync(int retroId, InsertRetroActionItemDto dto)
+    public async System.Threading.Tasks.Task<Response<GetRetroActionItemDto>> CreateActionItemAsync(Guid retroId, InsertRetroActionItemDto dto)
     {
         try
         {
@@ -263,7 +264,7 @@ public class SprintRetroService : ISprintRetroService
         }
     }
 
-    public async Task<Response<GetRetroActionItemDto>> UpdateActionItemAsync(int id, UpdateRetroActionItemDto dto)
+    public async System.Threading.Tasks.Task<Response<GetRetroActionItemDto>> UpdateActionItemAsync(Guid id, UpdateRetroActionItemDto dto)
     {
         try
         {
@@ -286,7 +287,7 @@ public class SprintRetroService : ISprintRetroService
         }
     }
 
-    public async Task<Response<GetRetroActionItemDto>> ToggleActionItemAsync(int id)
+    public async System.Threading.Tasks.Task<Response<GetRetroActionItemDto>> ToggleActionItemAsync(Guid id)
     {
         try
         {
@@ -307,7 +308,7 @@ public class SprintRetroService : ISprintRetroService
         }
     }
 
-    public async Task<Response<bool>> DeleteActionItemAsync(int id)
+    public async System.Threading.Tasks.Task<Response<bool>> DeleteActionItemAsync(Guid id)
     {
         try
         {

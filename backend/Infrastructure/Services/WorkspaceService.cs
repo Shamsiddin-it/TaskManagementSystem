@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text;
+using Domain.Models;
 using Microsoft.EntityFrameworkCore;
+using TaskEntity = Domain.Models.Task;
 
 public class WorkspaceService : IWorkspaceService
 {
@@ -214,12 +216,12 @@ public class WorkspaceService : IWorkspaceService
             builder.AppendLine("Date,Description,Amount,ProjectId,BillingEmail,Plan");
             foreach (var invoice in invoices)
             {
-                builder.AppendLine($"{invoice.RecordDate:yyyy-MM-dd},"{(invoice.Description ?? string.Empty).Replace(""", """")}",{invoice.Amount},{invoice.ProjectId},{settings.BillingEmail},{settings.PlanName}");
+                builder.AppendLine($"{invoice.RecordDate:yyyy-MM-dd},\"{(invoice.Description ?? string.Empty).Replace("\"", "\"\"")}\",{invoice.Amount},{invoice.ProjectId},{settings.BillingEmail},{settings.PlanName}");
             }
 
             if (invoices.Count == 0)
             {
-                builder.AppendLine($"{DateTime.UtcNow:yyyy-MM-dd},"No invoices yet",0,,{settings.BillingEmail},{settings.PlanName}");
+                builder.AppendLine($"{DateTime.UtcNow:yyyy-MM-dd},\"No invoices yet\",0,,{settings.BillingEmail},{settings.PlanName}");
             }
 
             return new Response<WorkspaceExportFileDto>(
@@ -349,7 +351,6 @@ public class WorkspaceService : IWorkspaceService
         var employer = await _db.Users.FirstAsync(x => x.Id == employerId);
         settings = new WorkspaceSettings
         {
-            Id = Guid.NewGuid(),
             EmployerId = employerId,
             OrganizationName = string.IsNullOrWhiteSpace(employer.FullName) ? "New Organization" : employer.FullName,
             OrganizationCode = $"ORG-{employerId.Replace("-", string.Empty)[..Math.Min(4, employerId.Replace("-", string.Empty).Length)].ToUpper()}",
@@ -383,12 +384,12 @@ public class WorkspaceService : IWorkspaceService
 
         integrations =
         [
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "okta", Name = "Okta", Status = "Connected", IsConnected = true, Accent = "okta", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "google", Name = "Google Workspace", Status = "Connected", IsConnected = true, Accent = "google", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "slack", Name = "Slack Enterprise", Status = "Connected", IsConnected = true, Accent = "slack", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "workday", Name = "Workday", Status = "Not connected", IsConnected = false, Accent = "workday", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "greenhouse", Name = "Greenhouse", Status = "Connected", IsConnected = true, Accent = "greenhouse", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "salesforce", Name = "Salesforce", Status = "Not connected", IsConnected = false, Accent = "salesforce", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+            new WorkspaceIntegration { EmployerId = employerId, Key = "okta", Name = "Okta", Status = "Connected", IsConnected = true, Accent = "okta", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new WorkspaceIntegration { EmployerId = employerId, Key = "google", Name = "Google Workspace", Status = "Connected", IsConnected = true, Accent = "google", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new WorkspaceIntegration { EmployerId = employerId, Key = "slack", Name = "Slack Enterprise", Status = "Connected", IsConnected = true, Accent = "slack", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new WorkspaceIntegration { EmployerId = employerId, Key = "workday", Name = "Workday", Status = "Not connected", IsConnected = false, Accent = "workday", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new WorkspaceIntegration { EmployerId = employerId, Key = "greenhouse", Name = "Greenhouse", Status = "Connected", IsConnected = true, Accent = "greenhouse", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new WorkspaceIntegration { EmployerId = employerId, Key = "salesforce", Name = "Salesforce", Status = "Not connected", IsConnected = false, Accent = "salesforce", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
         ];
 
         _db.WorkspaceIntegrations.AddRange(integrations);
@@ -396,11 +397,10 @@ public class WorkspaceService : IWorkspaceService
         return integrations;
     }
 
-    private Task CreateSystemNotificationAsync(string employerId, string title, string body)
+    private System.Threading.Tasks.Task CreateSystemNotificationAsync(string employerId, string title, string body)
     {
         _db.EmployerNotifications.Add(new EmployerNotification
         {
-            Id = Guid.NewGuid(),
             EmployerId = employerId,
             Type = EmployerNotifType.System,
             Priority = NotifPriority.Normal,
@@ -410,6 +410,6 @@ public class WorkspaceService : IWorkspaceService
             CreatedAt = DateTime.UtcNow
         });
 
-        return Task.CompletedTask;
+        return System.Threading.Tasks.Task.CompletedTask;
     }
 }

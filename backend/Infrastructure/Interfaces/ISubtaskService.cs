@@ -1,15 +1,15 @@
 public interface ISubtaskService
 {
-    Task<Response<GetSubtaskDto>> CreateAsync(InsertSubtaskDto dto);
-    Task<Response<GetSubtaskDto>> GetByIdAsync(int id);
-    Task<Response<PagedResult<GetSubtaskDto>>> GetAllAsync(SubtaskFilter filter, PaginationFilter pagination);
-    Task<Response<GetSubtaskDto>> UpdateAsync(int id, UpdateSubtaskDto dto);
-    Task<Response<bool>> DeleteAsync(int id);
-    Task<Response<bool>> SetCompletedAsync(int id, bool isCompleted);
+    System.Threading.Tasks.Task<Response<GetSubtaskDto>> CreateAsync(InsertSubtaskDto dto);
+    System.Threading.Tasks.Task<Response<GetSubtaskDto>> GetByIdAsync(Guid id);
+    System.Threading.Tasks.Task<Response<PagedResult<GetSubtaskDto>>> GetAllAsync(SubtaskFilter filter, PaginationFilter pagination);
+    System.Threading.Tasks.Task<Response<GetSubtaskDto>> UpdateAsync(Guid id, UpdateSubtaskDto dto);
+    System.Threading.Tasks.Task<Response<bool>> DeleteAsync(Guid id);
+    System.Threading.Tasks.Task<Response<bool>> SetCompletedAsync(Guid id, bool isCompleted);
 
-    Task<Response<GetSubtaskDto>> CreateSubtaskAsync(int taskId, InsertSubtaskDto dto);
-    Task<Response<GetSubtaskDto>> UpdateSubtaskAsync(int id, UpdateSubtaskDto dto);
-    Task<Response<GetSubtaskDto>> ToggleSubtaskAsync(int id);
-    Task<Response<bool>> DeleteSubtaskAsync(int id);
-    Task<Response<bool>> ReorderSubtasksAsync(int taskId, List<SubtaskOrderUpdateDto> updates);
+    System.Threading.Tasks.Task<Response<GetSubtaskDto>> CreateSubtaskAsync(Guid taskId, InsertSubtaskDto dto);
+    System.Threading.Tasks.Task<Response<GetSubtaskDto>> UpdateSubtaskAsync(Guid id, UpdateSubtaskDto dto);
+    System.Threading.Tasks.Task<Response<GetSubtaskDto>> ToggleSubtaskAsync(Guid id);
+    System.Threading.Tasks.Task<Response<bool>> DeleteSubtaskAsync(Guid id);
+    System.Threading.Tasks.Task<Response<bool>> ReorderSubtasksAsync(Guid taskId, List<SubtaskOrderUpdateDto> updates);
 }

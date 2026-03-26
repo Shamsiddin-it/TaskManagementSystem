@@ -1,3 +1,7 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+
 public class EmployerNotificationService : IEmployerNotificationService
 {
     private readonly ApplicationDbContext _db;
@@ -82,19 +86,18 @@ public class EmployerNotificationService : IEmployerNotificationService
         string title,
         string body,
         NotifPriority priority,
-        int? relatedProjectId = null)
+        Guid? projectId = null)
     {
         try
         {
             var notif = new EmployerNotification
             {
-                Id = Guid.NewGuid(),
                 EmployerId = employerId,
                 Type = type,
                 Priority = priority,
                 Title = title,
                 Body = body,
-                RelatedProjectId = relatedProjectId,
+                RelatedProjectId = projectId,
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             };

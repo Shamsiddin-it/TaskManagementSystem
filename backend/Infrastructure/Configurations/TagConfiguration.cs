@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Domain.Models;
 
 namespace Infrastructure.Persistence.Configurations;
 

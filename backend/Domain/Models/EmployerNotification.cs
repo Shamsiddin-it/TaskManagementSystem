@@ -10,7 +10,7 @@ public class EmployerNotification : BaseEntity
     public NotifPriority Priority { get; set; }   // high | normal | low
     public string Title { get; set; } = string.Empty;
     public string Body { get; set; } = string.Empty;
-    public int? RelatedProjectId { get; set; }
+    public Guid? RelatedProjectId { get; set; }
     public Project? RelatedProject { get; set; }
     public string? ActionLabel { get; set; }    // "Action", "View Detail", "Approve"
     public string? ActionUrl { get; set; }

@@ -4,6 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
+using System.Net;
+using Domain.Models;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using TaskEntity = Domain.Models.Task;
+
 public class TagService : ITagService
 {
     private const string EntityName = "Tag";
@@ -20,7 +28,7 @@ public class TagService : ITagService
         _logger = logger;
     }
 
-    public async Task<Response<GetTagDto>> CreateAsync(InsertTagDto dto)
+    public async System.Threading.Tasks.Task<Response<GetTagDto>> CreateAsync(InsertTagDto dto)
     {
         try
         {
@@ -48,7 +56,7 @@ public class TagService : ITagService
         }
     }
 
-    public async Task<Response<GetTagDto>> GetByIdAsync(int id)
+    public async System.Threading.Tasks.Task<Response<GetTagDto>> GetByIdAsync(Guid id)
     {
         try
         {
@@ -74,7 +82,7 @@ public class TagService : ITagService
         }
     }
 
-    public async Task<Response<PagedResult<GetTagDto>>> GetAllAsync(TagFilter filter, PaginationFilter pagination)
+    public async System.Threading.Tasks.Task<Response<PagedResult<GetTagDto>>> GetAllAsync(TagFilter filter, PaginationFilter pagination)
     {
         try
         {
@@ -125,7 +133,7 @@ public class TagService : ITagService
         }
     }
 
-    public async Task<Response<GetTagDto>> UpdateAsync(int id, UpdateTagDto dto)
+    public async System.Threading.Tasks.Task<Response<GetTagDto>> UpdateAsync(Guid id, UpdateTagDto dto)
     {
         try
         {
@@ -155,7 +163,7 @@ public class TagService : ITagService
         }
     }
 
-    public async Task<Response<bool>> DeleteAsync(int id)
+    public async System.Threading.Tasks.Task<Response<bool>> DeleteAsync(Guid id)
     {
         try
         {
@@ -177,7 +185,7 @@ public class TagService : ITagService
         }
     }
 
-    public async Task<Response<List<GetTagDto>>> GetTeamTagsAsync(int teamId)
+    public async System.Threading.Tasks.Task<Response<List<GetTagDto>>> GetTeamTagsAsync(Guid teamId)
     {
         try
         {
@@ -205,18 +213,18 @@ public class TagService : ITagService
         }
     }
 
-    public Task<Response<GetTagDto>> CreateTagAsync(int teamId, InsertTagDto dto)
+    public System.Threading.Tasks.Task<Response<GetTagDto>> CreateTagAsync(Guid teamId, InsertTagDto dto)
     {
         if (dto != null) dto.TeamId = teamId;
         return CreateAsync(dto);
     }
 
-    public Task<Response<bool>> DeleteTagAsync(int id)
+    public System.Threading.Tasks.Task<Response<bool>> DeleteTagAsync(Guid id)
     {
         return DeleteAsync(id);
     }
 
-    public async Task<Response<GetTaskTagDto>> AddTagToTaskAsync(int taskId, int tagId)
+    public async System.Threading.Tasks.Task<Response<GetTaskTagDto>> AddTagToTaskAsync(Guid taskId, Guid tagId)
     {
         try
         {
@@ -240,7 +248,7 @@ public class TagService : ITagService
         }
     }
 
-    public async Task<Response<bool>> RemoveTagFromTaskAsync(int taskId, int tagId)
+    public async System.Threading.Tasks.Task<Response<bool>> RemoveTagFromTaskAsync(Guid taskId, Guid tagId)
     {
         try
         {

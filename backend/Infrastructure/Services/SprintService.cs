@@ -1,4 +1,5 @@
 using System.Net;
+using Domain.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -20,7 +21,7 @@ public class SprintService : ISprintService
         _logger = logger;
     }
 
-    public async Task<Response<GetSprintDto>> CreateAsync(InsertSprintDto dto)
+    public async System.Threading.Tasks.Task<Response<GetSprintDto>> CreateAsync(InsertSprintDto dto)
     {
         try
         {
@@ -45,7 +46,7 @@ public class SprintService : ISprintService
         }
     }
 
-    public async Task<Response<GetSprintDto>> GetByIdAsync(int id)
+    public async System.Threading.Tasks.Task<Response<GetSprintDto>> GetByIdAsync(Guid id)
     {
         try
         {
@@ -71,7 +72,7 @@ public class SprintService : ISprintService
         }
     }
 
-    public async Task<Response<PagedResult<GetSprintDto>>> GetAllAsync(SprintFilter filter, PaginationFilter pagination)
+    public async System.Threading.Tasks.Task<Response<PagedResult<GetSprintDto>>> GetAllAsync(SprintFilter filter, PaginationFilter pagination)
     {
         try
         {
@@ -126,7 +127,7 @@ public class SprintService : ISprintService
         }
     }
 
-    public async Task<Response<GetSprintDto>> UpdateAsync(int id, UpdateSprintDto dto)
+    public async System.Threading.Tasks.Task<Response<GetSprintDto>> UpdateAsync(Guid id, UpdateSprintDto dto)
     {
         try
         {
@@ -153,7 +154,7 @@ public class SprintService : ISprintService
         }
     }
 
-    public async Task<Response<bool>> DeleteAsync(int id)
+    public async System.Threading.Tasks.Task<Response<bool>> DeleteAsync(Guid id)
     {
         try
         {
@@ -175,7 +176,7 @@ public class SprintService : ISprintService
         }
     }
 
-    public async Task<Response<bool>> SetStatusAsync(int id, SprintStatus status)
+    public async System.Threading.Tasks.Task<Response<bool>> SetStatusAsync(Guid id, SprintStatus status)
     {
         try
         {
@@ -197,7 +198,7 @@ public class SprintService : ISprintService
         }
     }
 
-    public async Task<Response<GetSprintDto>> CreateSprintAsync(int teamId, InsertSprintDto dto)
+    public async System.Threading.Tasks.Task<Response<GetSprintDto>> CreateSprintAsync(Guid teamId, InsertSprintDto dto)
     {
         try
         {
@@ -232,7 +233,7 @@ public class SprintService : ISprintService
         }
     }
 
-    public async Task<Response<PagedResult<GetSprintDto>>> GetSprintsAsync(int teamId, SprintQueryFilter filter)
+    public async System.Threading.Tasks.Task<Response<PagedResult<GetSprintDto>>> GetSprintsAsync(Guid teamId, SprintQueryFilter filter)
     {
         try
         {
@@ -279,7 +280,7 @@ public class SprintService : ISprintService
         }
     }
 
-    public async Task<Response<GetSprintDto>> GetActiveSprintAsync(int teamId)
+    public async System.Threading.Tasks.Task<Response<GetSprintDto>> GetActiveSprintAsync(Guid teamId)
     {
         try
         {
@@ -307,12 +308,12 @@ public class SprintService : ISprintService
         }
     }
 
-    public Task<Response<GetSprintDto>> GetSprintByIdAsync(int id)
+    public System.Threading.Tasks.Task<Response<GetSprintDto>> GetSprintByIdAsync(Guid id)
     {
         return GetByIdAsync(id);
     }
 
-    public async Task<Response<bool>> StartSprintAsync(int id, int actorId)
+    public async System.Threading.Tasks.Task<Response<bool>> StartSprintAsync(Guid id, string actorId)
     {
         try
         {
@@ -339,7 +340,7 @@ public class SprintService : ISprintService
         }
     }
 
-    public async Task<Response<bool>> CompleteSprintAsync(int id)
+    public async System.Threading.Tasks.Task<Response<bool>> CompleteSprintAsync(Guid id)
     {
         try
         {
@@ -361,12 +362,12 @@ public class SprintService : ISprintService
         }
     }
 
-    public Task<Response<GetSprintDto>> UpdateSprintAsync(int id, UpdateSprintDto dto)
+    public System.Threading.Tasks.Task<Response<GetSprintDto>> UpdateSprintAsync(Guid id, UpdateSprintDto dto)
     {
         return UpdateAsync(id, dto);
     }
 
-    public async Task<Response<SprintStatsDto>> GetSprintStatsAsync(int id)
+    public async System.Threading.Tasks.Task<Response<SprintStatsDto>> GetSprintStatsAsync(Guid id)
     {
         try
         {

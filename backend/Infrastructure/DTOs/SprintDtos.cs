@@ -1,6 +1,6 @@
 public class InsertSprintDto
 {
-    public int TeamId { get; set; }
+    public Guid TeamId { get; set; }
     public string Name { get; set; } = null!;
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
@@ -10,13 +10,13 @@ public class InsertSprintDto
 
 public class UpdateSprintDto : InsertSprintDto
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 }
 
 public class GetSprintDto
 {
-    public int Id { get; set; }
-    public int TeamId { get; set; }
+    public Guid Id { get; set; }
+    public Guid TeamId { get; set; }
     public string Name { get; set; } = null!;
     public int Number { get; set; }
     public SprintStatus Status { get; set; }

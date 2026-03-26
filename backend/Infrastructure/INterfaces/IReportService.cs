@@ -1,4 +1,4 @@
 public interface IReportService
 {
-    Task<Response<ReportsDashboardDto>> GetDashboardAsync(Guid employerId);
+    Task<Response<ReportsDashboardDto>> GetDashboardAsync(string employerId);
 }

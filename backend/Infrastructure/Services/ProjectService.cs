@@ -1,3 +1,8 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+using TaskEntity = Domain.Models.Task;
+
 public class ProjectService : IProjectService
 {
     private readonly ApplicationDbContext _db;
@@ -136,7 +141,7 @@ public class ProjectService : IProjectService
         }
     }
 
-    public async Task<Response<ProjectResponseDto>> GetProjectByIdAsync(int projectId)
+    public async Task<Response<ProjectResponseDto>> GetProjectByIdAsync(Guid projectId)
     {
         try
         {
@@ -158,7 +163,7 @@ public class ProjectService : IProjectService
         }
     }
 
-    public async Task<Response<ProjectStatsDto>> GetProjectStatsAsync(int projectId)
+    public async Task<Response<ProjectStatsDto>> GetProjectStatsAsync(Guid projectId)
     {
         try
         {

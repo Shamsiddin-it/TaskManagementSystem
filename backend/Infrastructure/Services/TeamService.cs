@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+using System.Net;
+
 public class TeamService : ITeamService
 {
     private readonly ApplicationDbContext _db;
@@ -14,7 +18,6 @@ public class TeamService : ITeamService
 
             var team = new Team
             {
-                Id = ,
                 ProjectId = projectId,
                 Name = dto.Name,
                 Description = dto.Description,
@@ -35,7 +38,7 @@ public class TeamService : ITeamService
         }
     }
 
-    public async Task<Response<TeamResponseDto>> UpdateTeamAsync(int teamId, UpdateTeamDto dto)
+    public async Task<Response<TeamResponseDto>> UpdateTeamAsync(Guid teamId, UpdateTeamDto dto)
     {
         try
         {
@@ -66,7 +69,7 @@ public class TeamService : ITeamService
         }
     }
 
-    public async Task<Response<bool>> AssignTeamLeadAsync(int teamId, string teamLeadId)
+    public async Task<Response<bool>> AssignTeamLeadAsync(Guid teamId, string teamLeadId)
     {
         try
         {
@@ -100,9 +103,9 @@ public class TeamService : ITeamService
             if (team == null)
                 return new Response<bool>(HttpStatusCode.NotFound, "Team not found");
 
-            if (team.TeamLeadId.HasValue)
+            if (!string.IsNullOrEmpty(team.TeamLeadId))
             {
-                var prevLead = await _db.Users.FindAsync(team.TeamLeadId.Value);
+                var prevLead = await _db.Users.FindAsync(team.TeamLeadId);
                 if (prevLead != null)
                     prevLead.Role = UserRole.Worker;
             }
@@ -120,7 +123,7 @@ public class TeamService : ITeamService
         }
     }
 
-    public async Task<Response<TeamResponseDto>> GetTeamProgressAsync(int teamId)
+    public async Task<Response<TeamResponseDto>> GetTeamProgressAsync(Guid teamId)
     {
         try
         {

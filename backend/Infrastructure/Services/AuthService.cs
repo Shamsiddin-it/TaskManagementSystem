@@ -1,11 +1,17 @@
+using System.Net;
+using System.Security.Claims;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Domain.Models;
 
 public class AuthService : IAuthService
 {
-    private readonly AppDbContext _db;
+    private readonly ApplicationDbContext _db;
     private readonly IConfiguration _configuration;
 
-    public AuthService(AppDbContext db, IConfiguration configuration)
+    public AuthService(ApplicationDbContext db, IConfiguration configuration)
     {
         _db = db;
         _configuration = configuration;

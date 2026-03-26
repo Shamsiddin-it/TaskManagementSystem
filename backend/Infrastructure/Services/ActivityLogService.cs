@@ -4,6 +4,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using TaskEntity = Domain.Models.Task;
 
 public class ActivityLogService : IActivityLogService
 {
@@ -21,7 +22,7 @@ public class ActivityLogService : IActivityLogService
         _logger = logger;
     }
 
-    public async Task<Response<GetActivityLogDto>> CreateAsync(InsertActivityLogDto dto)
+    public async System.Threading.Tasks.Task<Response<GetActivityLogDto>> CreateAsync(InsertActivityLogDto dto)
     {
         try
         {
@@ -46,7 +47,7 @@ public class ActivityLogService : IActivityLogService
         }
     }
 
-    public async Task<Response<GetActivityLogDto>> GetByIdAsync(int id)
+    public async System.Threading.Tasks.Task<Response<GetActivityLogDto>> GetByIdAsync(Guid id)
     {
         try
         {
@@ -72,7 +73,7 @@ public class ActivityLogService : IActivityLogService
         }
     }
 
-    public async Task<Response<PagedResult<GetActivityLogDto>>> GetAllAsync(ActivityLogFilter filter, PaginationFilter pagination)
+    public async System.Threading.Tasks.Task<Response<PagedResult<GetActivityLogDto>>> GetAllAsync(ActivityLogFilter filter, PaginationFilter pagination)
     {
         try
         {
@@ -89,7 +90,7 @@ public class ActivityLogService : IActivityLogService
             IQueryable<ActivityLog> query = _db.ActivityLogs.AsNoTracking();
 
             if (filter.TeamId.HasValue) query = query.Where(x => x.TeamId == filter.TeamId.Value);
-            if (filter.ActorId.HasValue) query = query.Where(x => x.ActorId == filter.ActorId.Value);
+            if (filter.ActorId != null) query = query.Where(x => x.ActorId == filter.ActorId);
             if (filter.ActionType.HasValue) query = query.Where(x => x.ActionType == filter.ActionType.Value);
             if (!string.IsNullOrWhiteSpace(filter.EntityType)) query = query.Where(x => x.EntityType.Contains(filter.EntityType));
             if (filter.EntityId.HasValue) query = query.Where(x => x.EntityId == filter.EntityId.Value);
@@ -127,7 +128,7 @@ public class ActivityLogService : IActivityLogService
         }
     }
 
-    public async Task<Response<GetActivityLogDto>> UpdateAsync(int id, UpdateActivityLogDto dto)
+    public async System.Threading.Tasks.Task<Response<GetActivityLogDto>> UpdateAsync(Guid id, UpdateActivityLogDto dto)
     {
         try
         {
@@ -154,7 +155,7 @@ public class ActivityLogService : IActivityLogService
         }
     }
 
-    public async Task<Response<bool>> DeleteAsync(int id)
+    public async System.Threading.Tasks.Task<Response<bool>> DeleteAsync(Guid id)
     {
         try
         {
@@ -176,7 +177,7 @@ public class ActivityLogService : IActivityLogService
         }
     }
 
-    public async Task<Response<List<GetActivityLogDto>>> GetTeamActivityAsync(int teamId, LimitOffsetFilter filter)
+    public async System.Threading.Tasks.Task<Response<List<GetActivityLogDto>>> GetTeamActivityAsync(Guid teamId, LimitOffsetFilter filter)
     {
         try
         {
@@ -209,7 +210,7 @@ public class ActivityLogService : IActivityLogService
         }
     }
 
-    public async Task<Response<List<GetActivityLogDto>>> GetTaskActivityAsync(int taskId, LimitOffsetFilter filter)
+    public async System.Threading.Tasks.Task<Response<List<GetActivityLogDto>>> GetTaskActivityAsync(Guid taskId, LimitOffsetFilter filter)
     {
         try
         {
@@ -242,7 +243,7 @@ public class ActivityLogService : IActivityLogService
         }
     }
 
-    public Task<Response<GetActivityLogDto>> CreateActivityLogAsync(InsertActivityLogDto dto)
+    public System.Threading.Tasks.Task<Response<GetActivityLogDto>> CreateActivityLogAsync(InsertActivityLogDto dto)
     {
         return CreateAsync(dto);
     }

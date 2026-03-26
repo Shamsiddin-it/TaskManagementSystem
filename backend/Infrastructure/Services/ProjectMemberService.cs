@@ -1,9 +1,13 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+
 public class ProjectMemberService : IProjectMemberService
 {
     private readonly ApplicationDbContext _db;
     public ProjectMemberService(ApplicationDbContext db) => _db = db;
 
-    public async Task<Response<ProjectMemberDto>> AddMemberAsync(int projectId, AddProjectMemberDto dto)
+    public async Task<Response<ProjectMemberDto>> AddMemberAsync(Guid projectId, AddProjectMemberDto dto)
     {
         try
         {
@@ -24,7 +28,6 @@ public class ProjectMemberService : IProjectMemberService
 
             var member = new ProjectMember
             {
-                Id = ,
                 ProjectId = projectId,
                 UserId = dto.UserId,
                 ProjectRole = dto.ProjectRole,
@@ -38,7 +41,6 @@ public class ProjectMemberService : IProjectMemberService
             {
                 _db.EmployerNotifications.Add(new EmployerNotification
                 {
-                    Id = ,
                     EmployerId = project.EmployerId,
                     Type = EmployerNotifType.TeamUpdate,
                     Priority = NotifPriority.Normal,
@@ -72,7 +74,7 @@ public class ProjectMemberService : IProjectMemberService
         }
     }
 
-    public async Task<Response<bool>> RemoveMemberAsync(int projectId, string userId)
+    public async Task<Response<bool>> RemoveMemberAsync(Guid projectId, string userId)
     {
         try
         {
@@ -93,7 +95,7 @@ public class ProjectMemberService : IProjectMemberService
         }
     }
 
-    public async Task<Response<List<ProjectMemberDto>>> GetMembersAsync(int projectId)
+    public async Task<Response<List<ProjectMemberDto>>> GetMembersAsync(Guid projectId)
     {
         try
         {
@@ -131,7 +133,7 @@ public class ProjectMemberService : IProjectMemberService
         }
     }
 
-    public async Task<Response<bool>> UpdateMemberRoleAsync(int projectId, string userId, string role)
+    public async Task<Response<bool>> UpdateMemberRoleAsync(Guid projectId, string userId, string role)
     {
         try
         {

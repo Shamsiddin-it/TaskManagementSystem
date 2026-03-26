@@ -1,10 +1,11 @@
-using System.Net;
-using Domain.Models;
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using TaskEntity = global::Task;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using System.Net;
+using System.Threading.Tasks;
+using Domain.Models;
+using TaskEntity = Domain.Models.Task;
 
 public class TaskService : ITaskService
 {
@@ -25,7 +26,7 @@ public class TaskService : ITaskService
         _ticketCodeGenerator = ticketCodeGenerator;
     }
 
-    public async Task<Response<GetTaskDto>> CreateAsync(InsertTaskDto dto)
+    public async System.Threading.Tasks.Task<Response<GetTaskDto>> CreateAsync(InsertTaskDto dto)
     {
         try
         {
@@ -60,7 +61,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async Task<Response<GetTaskDto>> GetByIdAsync(int id)
+    public async System.Threading.Tasks.Task<Response<GetTaskDto>> GetByIdAsync(Guid id)
     {
         try
         {
@@ -86,7 +87,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async Task<Response<PagedResult<GetTaskDto>>> GetAllAsync(TaskFilter filter, PaginationFilter pagination)
+    public async System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetAllAsync(TaskFilter filter, PaginationFilter pagination)
     {
         try
         {
@@ -104,7 +105,7 @@ public class TaskService : ITaskService
 
             if (!string.IsNullOrWhiteSpace(filter.Title)) query = query.Where(x => x.Title.Contains(filter.Title));
             if (filter.Status.HasValue) query = query.Where(x => x.Status == filter.Status.Value);
-            if (filter.AssignedToUserId.HasValue) query = query.Where(x => x.AssignedToId == filter.AssignedToUserId.Value);
+            if (filter.AssignedToUserId != null) query = query.Where(x => x.AssignedToId == filter.AssignedToUserId);
             if (filter.Priority.HasValue) query = query.Where(x => x.Priority == filter.Priority.Value);
             if (filter.IsBlocked.HasValue) query = query.Where(x => x.IsBlocked == filter.IsBlocked.Value);
             if (filter.IsArchived.HasValue) query = query.Where(x => x.IsArchived == filter.IsArchived.Value);
@@ -143,7 +144,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async Task<Response<GetTaskDto>> UpdateAsync(int id, UpdateTaskDto dto)
+    public async System.Threading.Tasks.Task<Response<GetTaskDto>> UpdateAsync(Guid id, UpdateTaskDto dto)
     {
         try
         {
@@ -186,7 +187,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async Task<Response<bool>> DeleteAsync(int id)
+    public async System.Threading.Tasks.Task<Response<bool>> DeleteAsync(Guid id)
     {
         try
         {
@@ -213,7 +214,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async Task<Response<bool>> SetStatusAsync(int id, TaskStatus status)
+    public async System.Threading.Tasks.Task<Response<bool>> SetStatusAsync(Guid id, TaskStatus status)
     {
         try
         {
@@ -240,11 +241,11 @@ public class TaskService : ITaskService
         }
     }
 
-    public Task<Response<GetTaskDto>> CreateTaskAsync(InsertTaskDto dto) => CreateAsync(dto);
+    public System.Threading.Tasks.Task<Response<GetTaskDto>> CreateTaskAsync(InsertTaskDto dto) => CreateAsync(dto);
 
-    public Task<Response<GetTaskDto>> GetTaskByIdAsync(int id) => GetByIdAsync(id);
+    public System.Threading.Tasks.Task<Response<GetTaskDto>> GetTaskByIdAsync(Guid id) => GetByIdAsync(id);
 
-    public async Task<Response<PagedResult<GetTaskDto>>> GetTeamTasksAsync(int teamId, TaskQueryFilter filter)
+    public async System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetTeamTasksAsync(Guid teamId, TaskQueryFilter filter)
     {
         try
         {
@@ -260,7 +261,7 @@ public class TaskService : ITaskService
             IQueryable<TaskEntity> query = _db.Tasks.AsNoTracking().Where(x => x.TeamId == teamId);
 
             if (filter.Status.HasValue) query = query.Where(x => x.Status == filter.Status.Value);
-            if (filter.AssigneeId.HasValue) query = query.Where(x => x.AssignedToId == filter.AssigneeId.Value);
+            if (filter.AssigneeId != null) query = query.Where(x => x.AssignedToId == filter.AssigneeId);
             if (filter.SprintId.HasValue) query = query.Where(x => x.SprintId == filter.SprintId.Value);
             if (filter.Priority.HasValue) query = query.Where(x => x.Priority == filter.Priority.Value);
             if (filter.IsBlocked.HasValue) query = query.Where(x => x.IsBlocked == filter.IsBlocked.Value);
@@ -297,7 +298,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async Task<Response<PagedResult<GetTaskDto>>> GetBacklogTasksAsync(int teamId, PaginationFilter filter)
+    public async System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetBacklogTasksAsync(Guid teamId, PaginationFilter filter)
     {
         try
         {
@@ -344,11 +345,11 @@ public class TaskService : ITaskService
         }
     }
 
-    public Task<Response<GetTaskDto>> UpdateTaskAsync(int id, UpdateTaskDto dto) => UpdateAsync(id, dto);
+    public System.Threading.Tasks.Task<Response<GetTaskDto>> UpdateTaskAsync(Guid id, UpdateTaskDto dto) => UpdateAsync(id, dto);
 
-    public Task<Response<bool>> UpdateTaskStatusAsync(int id, TaskStatus status) => SetStatusAsync(id, status);
+    public System.Threading.Tasks.Task<Response<bool>> UpdateTaskStatusAsync(Guid id, TaskStatus status) => SetStatusAsync(id, status);
 
-    public async Task<Response<bool>> AssignTaskAsync(int id, int newAssigneeId, int actorId)
+    public async System.Threading.Tasks.Task<Response<bool>> AssignTaskAsync(Guid id, string newAssigneeId, string actorId)
     {
         try
         {
@@ -370,12 +371,12 @@ public class TaskService : ITaskService
         }
     }
 
-    public Task<Response<bool>> ReassignTaskAsync(int id, int newAssigneeId, int actorId)
+    public System.Threading.Tasks.Task<Response<bool>> ReassignTaskAsync(Guid id, string newAssigneeId, string actorId)
     {
         return AssignTaskAsync(id, newAssigneeId, actorId);
     }
 
-    public async Task<Response<bool>> SetDeadlineAsync(int id, DateTime? deadline)
+    public async System.Threading.Tasks.Task<Response<bool>> SetDeadlineAsync(Guid id, DateTime? deadline)
     {
         try
         {
@@ -395,7 +396,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async Task<Response<bool>> SetPriorityAsync(int id, TaskPriority priority)
+    public async System.Threading.Tasks.Task<Response<bool>> SetPriorityAsync(Guid id, TaskPriority priority)
     {
         try
         {
@@ -415,7 +416,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async Task<Response<bool>> MoveToSprintAsync(int id, int? sprintId)
+    public async System.Threading.Tasks.Task<Response<bool>> MoveToSprintAsync(Guid id, Guid? sprintId)
     {
         try
         {
@@ -439,9 +440,9 @@ public class TaskService : ITaskService
         }
     }
 
-    public Task<Response<bool>> DeleteTaskAsync(int id) => DeleteAsync(id);
+    public System.Threading.Tasks.Task<Response<bool>> DeleteTaskAsync(Guid id) => DeleteAsync(id);
 
-    public async Task<Response<bool>> ReorderTasksAsync(int teamId, List<TaskOrderUpdateDto> updates)
+    public async System.Threading.Tasks.Task<Response<bool>> ReorderTasksAsync(Guid teamId, List<TaskOrderUpdateDto> updates)
     {
         try
         {
@@ -468,7 +469,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async Task<Response<PagedResult<GetTaskDto>>> GetBlockedTasksAsync(int teamId, PaginationFilter filter)
+    public async System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetBlockedTasksAsync(Guid teamId, PaginationFilter filter)
     {
         try
         {
@@ -515,7 +516,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async Task<Response<bool>> SetBlockedAsync(int id, bool isBlocked, string? reason)
+    public async System.Threading.Tasks.Task<Response<bool>> SetBlockedAsync(Guid id, bool isBlocked, string? reason)
     {
         try
         {
@@ -536,7 +537,7 @@ public class TaskService : ITaskService
         }
     }
 
-    public async System.Threading.Tasks.Task RecalculateSprintPointsAsync(int sprintId)
+    public async System.Threading.Tasks.Task RecalculateSprintPointsAsync(Guid sprintId)
     {
         var sprint = await _db.Sprints.FirstOrDefaultAsync(x => x.Id == sprintId);
         if (sprint == null) return;
@@ -547,7 +548,7 @@ public class TaskService : ITaskService
         await _db.SaveChangesAsync();
     }
 
-    private async System.Threading.Tasks.Task RecalculateCapacityAsync(int userId)
+    private async System.Threading.Tasks.Task RecalculateCapacityAsync(string userId)
     {
         var member = await _db.TeamMembers.FirstOrDefaultAsync(x => x.UserId == userId);
         if (member == null) return;

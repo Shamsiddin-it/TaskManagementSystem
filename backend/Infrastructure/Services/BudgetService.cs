@@ -1,3 +1,7 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+
 public class BudgetService : IBudgetService
 {
     private readonly ApplicationDbContext _db;
@@ -44,7 +48,6 @@ public class BudgetService : IBudgetService
             {
                 budget = new OrgBudget
                 {
-                    Id = Guid.NewGuid(),
                     EmployerId = employerId,
                     Period = "Custom",
                     CreatedAt = DateTime.UtcNow
@@ -90,7 +93,6 @@ public class BudgetService : IBudgetService
 
             var record = new BudgetRecord
             {
-                Id = Guid.NewGuid(),
                 ProjectId = dto.ProjectId,
                 Description = dto.Description,
                 Amount = dto.Amount,
@@ -130,7 +132,7 @@ public class BudgetService : IBudgetService
         }
     }
 
-    public async Task<Response<List<BudgetRecord>>> GetProjectBudgetHistoryAsync(int projectId)
+    public async Task<Response<List<BudgetRecord>>> GetProjectBudgetHistoryAsync(Guid projectId)
     {
         try
         {

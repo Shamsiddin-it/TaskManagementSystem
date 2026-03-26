@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using TaskEntity = global::Task;
+using TaskEntity = Domain.Models.Task;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {

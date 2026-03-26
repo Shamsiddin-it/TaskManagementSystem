@@ -3,7 +3,7 @@ public class ProjectRiskService : IProjectRiskService
     private readonly ApplicationDbContext _db;
     public ProjectRiskService(ApplicationDbContext db) => _db = db;
 
-    public async Task<Response<ProjectRiskDto>> AddRiskAsync(int projectId, CreateRiskDto dto)
+    public async Task<Response<ProjectRiskDto>> AddRiskAsync(Guid projectId, CreateRiskDto dto)
     {
         try
         {
@@ -14,7 +14,6 @@ public class ProjectRiskService : IProjectRiskService
 
             var risk = new ProjectRisk
             {
-                Id = ,
                 ProjectId = projectId,
                 Description = dto.Description,
                 Severity = dto.Severity,
@@ -52,7 +51,7 @@ public class ProjectRiskService : IProjectRiskService
         }
     }
 
-    public async Task<Response<List<ProjectRiskDto>>> GetRisksAsync(int projectId)
+    public async Task<Response<List<ProjectRiskDto>>> GetRisksAsync(Guid projectId)
     {
         try
         {
@@ -61,7 +60,7 @@ public class ProjectRiskService : IProjectRiskService
                 .OrderByDescending(r => r.Severity)
                 .Select(r => new ProjectRiskDto
                 {
-                    Id =,
+                    Id = r.Id,
                     Description = r.Description,
                     Severity = r.Severity,
                     Status = r.Status,

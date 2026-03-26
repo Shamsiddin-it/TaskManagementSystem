@@ -1,13 +1,13 @@
 using Domain.Models;
 public interface IActivityLogService
 {
-    Task<Response<GetActivityLogDto>> CreateAsync(InsertActivityLogDto dto);
-    Task<Response<GetActivityLogDto>> GetByIdAsync(int id);
-    Task<Response<PagedResult<GetActivityLogDto>>> GetAllAsync(ActivityLogFilter filter, PaginationFilter pagination);
-    Task<Response<GetActivityLogDto>> UpdateAsync(int id, UpdateActivityLogDto dto);
-    Task<Response<bool>> DeleteAsync(int id);
+    System.Threading.Tasks.Task<Response<GetActivityLogDto>> CreateAsync(InsertActivityLogDto dto);
+    System.Threading.Tasks.Task<Response<GetActivityLogDto>> GetByIdAsync(Guid id);
+    System.Threading.Tasks.Task<Response<PagedResult<GetActivityLogDto>>> GetAllAsync(ActivityLogFilter filter, PaginationFilter pagination);
+    System.Threading.Tasks.Task<Response<GetActivityLogDto>> UpdateAsync(Guid id, UpdateActivityLogDto dto);
+    System.Threading.Tasks.Task<Response<bool>> DeleteAsync(Guid id);
 
-    Task<Response<List<GetActivityLogDto>>> GetTeamActivityAsync(int teamId, LimitOffsetFilter filter);
-    Task<Response<List<GetActivityLogDto>>> GetTaskActivityAsync(int taskId, LimitOffsetFilter filter);
-    Task<Response<GetActivityLogDto>> CreateActivityLogAsync(InsertActivityLogDto dto);
+    System.Threading.Tasks.Task<Response<List<GetActivityLogDto>>> GetTeamActivityAsync(Guid teamId, LimitOffsetFilter filter);
+    System.Threading.Tasks.Task<Response<List<GetActivityLogDto>>> GetTaskActivityAsync(Guid taskId, LimitOffsetFilter filter);
+    System.Threading.Tasks.Task<Response<GetActivityLogDto>> CreateActivityLogAsync(InsertActivityLogDto dto);
 }

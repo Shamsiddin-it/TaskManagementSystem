@@ -1,4 +1,4 @@
-using Domain.Models;
+namespace Domain.Models;
 
 public class Task : BaseEntity
 {
@@ -18,7 +18,7 @@ public class Task : BaseEntity
     public string? Description{get;set;}
     // Описание задачи. Nullable. Text (без лимита).
 
-    public int TeamId{get;set;}
+    public Guid TeamId{get;set;}
     // FK на Team. Обязателен.
 
     public string AssignedToId{get;set;} = null!;
@@ -29,7 +29,7 @@ public class Task : BaseEntity
     // FK на User — кто создал (тим лид).
     // Обязателен. Устанавливается из текущего юзера.
 
-    public int? SprintId{get;set;}
+    public Guid? SprintId{get;set;}
     // FK на Sprint. Nullable.
     // null = задача в бэклоге, не в спринте.
 

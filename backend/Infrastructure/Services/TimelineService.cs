@@ -1,9 +1,13 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+
 public class TimelineService : ITimelineService
 {
     private readonly ApplicationDbContext _db;
     public TimelineService(ApplicationDbContext db) => _db = db;
 
-    public async Task<Response<List<TimelinePhaseDto>>> GetTimelineAsync(int projectId)
+    public async Task<Response<List<TimelinePhaseDto>>> GetTimelineAsync(Guid projectId)
     {
         try
         {
@@ -32,7 +36,7 @@ public class TimelineService : ITimelineService
         }
     }
 
-    public async Task<Response<TimelinePhaseDto>> AddPhaseAsync(int projectId, CreateTimelinePhaseDto dto)
+    public async Task<Response<TimelinePhaseDto>> AddPhaseAsync(Guid projectId, CreateTimelinePhaseDto dto)
     {
         try
         {
@@ -42,7 +46,6 @@ public class TimelineService : ITimelineService
 
             var phase = new ProjectTimeline
             {
-                Id = ,
                 ProjectId = projectId,
                 PhaseName = dto.PhaseName,
                 StartDate = dto.StartDate,

@@ -1,3 +1,7 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+
 public class ReportService : IReportService
 {
     private readonly ApplicationDbContext _db;

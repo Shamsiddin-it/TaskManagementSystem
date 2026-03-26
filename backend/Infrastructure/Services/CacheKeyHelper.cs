@@ -10,7 +10,7 @@ public static class CacheKeyHelper
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
 
-    public static string BuildIdKey(string entity, int id)
+    public static string BuildIdKey(string entity, Guid id)
     {
         return $"{entity}:id:{id}";
     }
