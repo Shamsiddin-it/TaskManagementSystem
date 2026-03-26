@@ -1,0 +1,143 @@
+@page "/workspace/schedule"
+@attribute [Authorize]
+@layout NexusShellLayout
+@using System.Security.Claims
+@using TaskManager.Web.Models.Api
+@inject AuthenticationStateProvider AuthStateProvider
+@inject TaskManager.Web.Services.Worker.ScheduleEventApiService ScheduleApi
+
+<PageTitle>Schedule</PageTitle>
+
+<div class="nx-page">
+    <div class="nx-cal-head">
+        <h2 class="nx-page-title nx-m0">Schedule</h2>
+        <div class="nx-cal-toolbar nx-muted"></div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ScheduleApi.LastError))
+    {
+        <div class="nx-alert nx-alert-error" role="alert">API error: @ScheduleApi.LastError</div>
+    }
+
+    <div class="nx-panel nx-mt" style="max-width: 720px;">
+        <h3 class="nx-section-title" style="margin-top:0;">Add schedule event</h3>
+        <div class="nx-grid-2">
+            <label class="nx-field">
+                <span>Title</span>
+                <input class="nx-input" @bind="_form.Title" />
+            </label>
+            <label class="nx-field">
+                <span>Type</span>
+                <select class="nx-input" @bind="_form.Type">
+                    <option value="@EventType.Task">Task</option>
+                    <option value="@EventType.FocusBlock">Focus block</option>
+                    <option value="@EventType.Meeting">Meeting</option>
+                    <option value="@EventType.Personal">Personal</option>
+                </select>
+            </label>
+            <label class="nx-field">
+                <span>Start</span>
+                <input class="nx-input" type="datetime-local" @bind-value="_startLocal" @bind-value:format="yyyy-MM-ddTHH:mm" />
+            </label>
+            <label class="nx-field">
+                <span>End</span>
+                <input class="nx-input" type="datetime-local" @bind-value="_endLocal" @bind-value:format="yyyy-MM-ddTHH:mm" />
+            </label>
+        </div>
+
+        <label class="nx-toggle" style="margin-top: 0.5rem;">
+            <input type="checkbox" @bind="_form.IsUrgent" /> Urgent
+        </label>
+
+        <button type="button" class="nx-btn-primary nx-mt" disabled="@_busy" @onclick="CreateAsync">Add</button>
+    </div>
+
+    <div class="nx-panel nx-mt">
+        <h3 class="nx-section-title" style="margin-top:0;">Your events</h3>
+        @if (_items.Count == 0)
+        {
+            <div class="nx-empty">
+                <h3>No events</h3>
+            </div>
+        }
+        else
+        {
+            <div style="display:flex; flex-direction:column; gap: 0.5rem;">
+                @foreach (var e in _items.OrderBy(x => x.StartTime))
+                {
+                    <div class="nx-notif-card @(e.IsUrgent ? "nx-notif-unread" : "")">
+                        <div class="nx-notif-icon nx-notif-sys"></div>
+                        <div style="flex:1;">
+                            <div class="nx-notif-row">
+                                <strong>@e.Title</strong>
+                                <span class="nx-muted nx-sm">@e.StartTime.ToLocalTime().ToString("g")</span>
+                            </div>
+                            <div class="nx-muted nx-sm">@e.Type · @($"{e.EndTime.ToLocalTime():HH:mm}")</div>
+                        </div>
+                        <button type="button" class="nx-btn-ghost nx-btn-sm" disabled="@_busy" @onclick="() => DeleteAsync(e.Id)">Delete</button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _busy;
+    private int _userId;
+    private readonly List<GetScheduleEventDto> _items = [];
+
+    private readonly CreateScheduleEventDto _form = new();
+    private DateTime _startLocal = DateTime.Now;
+    private DateTime _endLocal = DateTime.Now.AddHours(1);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        var sub = state.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(sub, out _userId))
+            return;
+
+        _form.UserId = _userId;
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        var all = await ScheduleApi.GetAllAsync();
+        _items.Clear();
+        _items.AddRange(all.Where(x => x.UserId == _userId));
+    }
+
+    private async Task CreateAsync()
+    {
+        _busy = true;
+        try
+        {
+            _form.StartTime = _startLocal;
+            _form.EndTime = _endLocal;
+
+            await ScheduleApi.AddAsync(_form);
+            _form.Title = string.Empty;
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        _busy = true;
+        try
+        {
+            await ScheduleApi.DeleteAsync(id);
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

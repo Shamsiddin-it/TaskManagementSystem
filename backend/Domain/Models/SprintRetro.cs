@@ -1,12 +1,14 @@
+namespace Domain.Models;
+
 public class SprintRetro : BaseEntity
 {
     // public int Id{get;set;}
     // default: int.Newint()
 
-    public int SprintId{get;set;}
+    public Guid SprintId{get;set;}
     // FK на Sprint. Unique — одно ретро на спринт.
 
-    public int CreatedById{get;set;}
+    public string CreatedById{get;set;} = null!;
     // FK на User (тим лид который создал ретро).
 
     public int PlannedPoints{get;set;}=0;

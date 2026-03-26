@@ -1,7 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+using System.Net;
+
 public class TeamService : ITeamService
 {
-    private readonly AppDbContext _db;
-    public TeamService(AppDbContext db) => _db = db;
+    private readonly ApplicationDbContext _db;
+    public TeamService(ApplicationDbContext db) => _db = db;
 
     public async Task<Response<TeamResponseDto>> CreateTeamAsync(Guid projectId, CreateTeamDto dto)
     {
@@ -14,7 +18,6 @@ public class TeamService : ITeamService
 
             var team = new Team
             {
-                Id = Guid.NewGuid(),
                 ProjectId = projectId,
                 Name = dto.Name,
                 Description = dto.Description,
@@ -66,7 +69,7 @@ public class TeamService : ITeamService
         }
     }
 
-    public async Task<Response<bool>> AssignTeamLeadAsync(Guid teamId, Guid teamLeadId)
+    public async Task<Response<bool>> AssignTeamLeadAsync(Guid teamId, string teamLeadId)
     {
         try
         {
@@ -100,9 +103,9 @@ public class TeamService : ITeamService
             if (team == null)
                 return new Response<bool>(HttpStatusCode.NotFound, "Team not found");
 
-            if (team.TeamLeadId.HasValue)
+            if (!string.IsNullOrEmpty(team.TeamLeadId))
             {
-                var prevLead = await _db.Users.FindAsync(team.TeamLeadId.Value);
+                var prevLead = await _db.Users.FindAsync(team.TeamLeadId);
                 if (prevLead != null)
                     prevLead.Role = UserRole.Worker;
             }
@@ -137,7 +140,7 @@ public class TeamService : ITeamService
                 .ToListAsync();
 
             int completionPercent = tasks.Count == 0 ? 0 :
-                (int)((double)tasks.Count(t => t.Status == TaskItemStatus.Done)
+                (int)((double)tasks.Count(t => t.Status == TaskStatus.Done)
                       / tasks.Count * 100);
 
             int memberCount = await _db.TeamMembers
@@ -164,7 +167,7 @@ public class TeamService : ITeamService
             TeamLead = t.TeamLead == null ? null : new TeamLeadDto
             {
                 Id = t.TeamLead.Id,
-                FullName = t.TeamLead.FullName,
+                FullName = t.TeamLead.FirstName + " " + t.TeamLead.LastName,
                 AvatarInitials = t.TeamLead.AvatarInitials
             },
             MemberCount = memberCount,

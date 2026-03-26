@@ -1,0 +1,33 @@
+@inject NavigationManager Nav
+@inject AuthApiService Auth
+
+<aside class="nx-sidebar nx-sidebar-employer">
+    <div class="nx-sidebar-brand">
+        <span class="nx-brand-square nx-brand-square-gold"></span>
+        <span class="nx-brand-text">Employer</span>
+    </div>
+    <nav class="nx-nav">
+        <div class="nx-nav-label">Overview</div>
+        <NavLink class="nx-nav-link" href="/employer/dashboard" Match="NavLinkMatch.All">
+            <span class="nx-nav-icon">▤</span> Dashboard
+        </NavLink>
+        <NavLink class="nx-nav-link" href="/employer/project">
+            <span class="nx-nav-icon">▣</span> Project Beta
+        </NavLink>
+        <div class="nx-nav-label nx-nav-label-spaced">Worker app</div>
+        <NavLink class="nx-nav-link" href="/workspace/today">
+            <span class="nx-nav-icon">↩</span> Back to worker
+        </NavLink>
+    </nav>
+    <div class="nx-sidebar-footer">
+        <button type="button" class="nx-btn-ghost" @onclick="LogoutAsync">Sign out</button>
+    </div>
+</aside>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        await Auth.LogoutAsync();
+        Nav.NavigateTo("/login", replace: true);
+    }
+}

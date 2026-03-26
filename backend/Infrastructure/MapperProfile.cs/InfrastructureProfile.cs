@@ -1,5 +1,6 @@
 using AutoMapper;
-using TaskEntity = global::Task;
+using Domain.Models;
+using TaskEntity = Domain.Models.Task;
 
 public class InfrastructureProfile : Profile
 {

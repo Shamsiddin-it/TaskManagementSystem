@@ -1,4 +1,5 @@
 using System.Net;
+using Domain.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -45,7 +46,7 @@ public class TaskTagService : ITaskTagService
         }
     }
 
-    public async Task<Response<GetTaskTagDto>> GetByIdAsync(int id)
+    public async Task<Response<GetTaskTagDto>> GetByIdAsync(Guid id)
     {
         try
         {
@@ -121,7 +122,7 @@ public class TaskTagService : ITaskTagService
         }
     }
 
-    public async Task<Response<GetTaskTagDto>> UpdateAsync(int id, UpdateTaskTagDto dto)
+    public async Task<Response<GetTaskTagDto>> UpdateAsync(Guid id, UpdateTaskTagDto dto)
     {
         try
         {
@@ -148,7 +149,7 @@ public class TaskTagService : ITaskTagService
         }
     }
 
-    public async Task<Response<bool>> DeleteAsync(int id)
+    public async Task<Response<bool>> DeleteAsync(Guid id)
     {
         try
         {

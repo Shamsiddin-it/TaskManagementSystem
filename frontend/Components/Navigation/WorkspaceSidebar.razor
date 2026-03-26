@@ -1,0 +1,46 @@
+@inject NavigationManager Nav
+@inject AuthApiService Auth
+
+<aside class="nx-sidebar">
+    <div class="nx-sidebar-brand">
+        <span class="nx-brand-square"></span>
+        <span class="nx-brand-text" style="display:none;">Nexus</span>
+    </div>
+
+    <nav class="nx-nav">
+        <div class="nx-nav-label">Workspace</div>
+        <NavLink class="nx-nav-link" href="/workspace" Match="NavLinkMatch.All">
+            <span class="nx-nav-icon">◇</span> Dashboard
+        </NavLink>
+        <NavLink class="nx-nav-link" href="/workspace/today">
+            <span class="nx-nav-icon">◆</span> Today’s focus
+        </NavLink>
+        <NavLink class="nx-nav-link" href="/workspace/schedule">
+            <span class="nx-nav-icon">▦</span> Schedule
+        </NavLink>
+        <NavLink class="nx-nav-link" href="/workspace/end-of-day">
+            <span class="nx-nav-icon">✦</span> End of day
+        </NavLink>
+
+        <div class="nx-nav-label nx-nav-label-spaced">System</div>
+        <NavLink class="nx-nav-link" href="/workspace/notifications">
+            <span class="nx-nav-icon">✉</span> Notifications
+        </NavLink>
+        <NavLink class="nx-nav-link" href="/workspace/settings">
+            <span class="nx-nav-icon">⚙</span> Settings
+        </NavLink>
+
+    </nav>
+
+    <div class="nx-sidebar-footer">
+        <button type="button" class="nx-btn-ghost" @onclick="LogoutAsync">Sign out</button>
+    </div>
+</aside>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        await Auth.LogoutAsync();
+        Nav.NavigateTo("/login", replace: true);
+    }
+}

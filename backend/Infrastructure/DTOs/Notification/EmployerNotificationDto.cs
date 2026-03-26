@@ -10,5 +10,5 @@ public class EmployerNotificationDto
     public string? SecondaryActionLabel { get; set; }
     public bool IsRead { get; set; }
     public DateTime CreatedAt { get; set; }
-    public Guid? RelatedProjectId { get; set; }
+    public int? RelatedProjectId { get; set; }
 }

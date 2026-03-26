@@ -1,4 +1,5 @@
 using System.Net;
+using Domain.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -20,7 +21,7 @@ public class SubtaskService : ISubtaskService
         _logger = logger;
     }
 
-    public async Task<Response<GetSubtaskDto>> CreateAsync(InsertSubtaskDto dto)
+    public async System.Threading.Tasks.Task<Response<GetSubtaskDto>> CreateAsync(InsertSubtaskDto dto)
     {
         try
         {
@@ -45,7 +46,7 @@ public class SubtaskService : ISubtaskService
         }
     }
 
-    public async Task<Response<GetSubtaskDto>> GetByIdAsync(int id)
+    public async System.Threading.Tasks.Task<Response<GetSubtaskDto>> GetByIdAsync(Guid id)
     {
         try
         {
@@ -71,7 +72,7 @@ public class SubtaskService : ISubtaskService
         }
     }
 
-    public async Task<Response<PagedResult<GetSubtaskDto>>> GetAllAsync(SubtaskFilter filter, PaginationFilter pagination)
+    public async System.Threading.Tasks.Task<Response<PagedResult<GetSubtaskDto>>> GetAllAsync(SubtaskFilter filter, PaginationFilter pagination)
     {
         try
         {
@@ -123,7 +124,7 @@ public class SubtaskService : ISubtaskService
         }
     }
 
-    public async Task<Response<GetSubtaskDto>> UpdateAsync(int id, UpdateSubtaskDto dto)
+    public async System.Threading.Tasks.Task<Response<GetSubtaskDto>> UpdateAsync(Guid id, UpdateSubtaskDto dto)
     {
         try
         {
@@ -150,7 +151,7 @@ public class SubtaskService : ISubtaskService
         }
     }
 
-    public async Task<Response<bool>> DeleteAsync(int id)
+    public async System.Threading.Tasks.Task<Response<bool>> DeleteAsync(Guid id)
     {
         try
         {
@@ -172,7 +173,7 @@ public class SubtaskService : ISubtaskService
         }
     }
 
-    public async Task<Response<bool>> SetCompletedAsync(int id, bool isCompleted)
+    public async System.Threading.Tasks.Task<Response<bool>> SetCompletedAsync(Guid id, bool isCompleted)
     {
         try
         {
@@ -195,18 +196,18 @@ public class SubtaskService : ISubtaskService
         }
     }
 
-    public Task<Response<GetSubtaskDto>> CreateSubtaskAsync(int taskId, InsertSubtaskDto dto)
+    public System.Threading.Tasks.Task<Response<GetSubtaskDto>> CreateSubtaskAsync(Guid taskId, InsertSubtaskDto dto)
     {
         if (dto != null) dto.TaskId = taskId;
         return CreateAsync(dto);
     }
 
-    public Task<Response<GetSubtaskDto>> UpdateSubtaskAsync(int id, UpdateSubtaskDto dto)
+    public System.Threading.Tasks.Task<Response<GetSubtaskDto>> UpdateSubtaskAsync(Guid id, UpdateSubtaskDto dto)
     {
         return UpdateAsync(id, dto);
     }
 
-    public async Task<Response<GetSubtaskDto>> ToggleSubtaskAsync(int id)
+    public async System.Threading.Tasks.Task<Response<GetSubtaskDto>> ToggleSubtaskAsync(Guid id)
     {
         try
         {
@@ -228,12 +229,12 @@ public class SubtaskService : ISubtaskService
         }
     }
 
-    public Task<Response<bool>> DeleteSubtaskAsync(int id)
+    public System.Threading.Tasks.Task<Response<bool>> DeleteSubtaskAsync(Guid id)
     {
         return DeleteAsync(id);
     }
 
-    public async Task<Response<bool>> ReorderSubtasksAsync(int taskId, List<SubtaskOrderUpdateDto> updates)
+    public async System.Threading.Tasks.Task<Response<bool>> ReorderSubtasksAsync(Guid taskId, List<SubtaskOrderUpdateDto> updates)
     {
         try
         {

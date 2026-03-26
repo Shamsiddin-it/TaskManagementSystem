@@ -1,7 +1,11 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+
 public class ProjectMemberService : IProjectMemberService
 {
-    private readonly AppDbContext _db;
-    public ProjectMemberService(AppDbContext db) => _db = db;
+    private readonly ApplicationDbContext _db;
+    public ProjectMemberService(ApplicationDbContext db) => _db = db;
 
     public async Task<Response<ProjectMemberDto>> AddMemberAsync(Guid projectId, AddProjectMemberDto dto)
     {
@@ -24,7 +28,6 @@ public class ProjectMemberService : IProjectMemberService
 
             var member = new ProjectMember
             {
-                Id = Guid.NewGuid(),
                 ProjectId = projectId,
                 UserId = dto.UserId,
                 ProjectRole = dto.ProjectRole,
@@ -38,11 +41,10 @@ public class ProjectMemberService : IProjectMemberService
             {
                 _db.EmployerNotifications.Add(new EmployerNotification
                 {
-                    Id = Guid.NewGuid(),
                     EmployerId = project.EmployerId,
                     Type = EmployerNotifType.TeamUpdate,
                     Priority = NotifPriority.Normal,
-                    Title = $"{user.FullName} added to {project.Title}",
+                    Title = $"{user.FirstName} added to {project.Title}",
                     Body = $"{dto.ProjectRole} assigned to the project.",
                     ActionLabel = "View Detail",
                     RelatedProjectId = projectId,
@@ -55,7 +57,7 @@ public class ProjectMemberService : IProjectMemberService
             var result = new ProjectMemberDto
             {
                 UserId = member.UserId,
-                FullName = user.FullName,
+                FullName = user.FirstName + " " + user.LastName,
                 AvatarInitials = user.AvatarInitials,
                 AvatarColor = user.AvatarColor,
                 ProjectRole = member.ProjectRole,
@@ -72,7 +74,7 @@ public class ProjectMemberService : IProjectMemberService
         }
     }
 
-    public async Task<Response<bool>> RemoveMemberAsync(Guid projectId, Guid userId)
+    public async Task<Response<bool>> RemoveMemberAsync(Guid projectId, string userId)
     {
         try
         {
@@ -113,7 +115,7 @@ public class ProjectMemberService : IProjectMemberService
                 return new ProjectMemberDto
                 {
                     UserId = m.UserId,
-                    FullName = user?.FullName ?? string.Empty,
+                    FullName = user?.FirstName + " " + user?.LastName ?? string.Empty,
                     AvatarInitials = user?.AvatarInitials,
                     AvatarColor = user?.AvatarColor,
                     ProjectRole = m.ProjectRole,
@@ -131,7 +133,7 @@ public class ProjectMemberService : IProjectMemberService
         }
     }
 
-    public async Task<Response<bool>> UpdateMemberRoleAsync(Guid projectId, Guid userId, string role)
+    public async Task<Response<bool>> UpdateMemberRoleAsync(Guid projectId, string userId, string role)
     {
         try
         {

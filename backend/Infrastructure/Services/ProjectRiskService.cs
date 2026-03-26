@@ -1,7 +1,7 @@
 public class ProjectRiskService : IProjectRiskService
 {
-    private readonly AppDbContext _db;
-    public ProjectRiskService(AppDbContext db) => _db = db;
+    private readonly ApplicationDbContext _db;
+    public ProjectRiskService(ApplicationDbContext db) => _db = db;
 
     public async Task<Response<ProjectRiskDto>> AddRiskAsync(Guid projectId, CreateRiskDto dto)
     {
@@ -14,7 +14,6 @@ public class ProjectRiskService : IProjectRiskService
 
             var risk = new ProjectRisk
             {
-                Id = Guid.NewGuid(),
                 ProjectId = projectId,
                 Description = dto.Description,
                 Severity = dto.Severity,

@@ -1,6 +1,8 @@
-public class ProjectTimeline
+namespace Domain.Models;
+
+public class ProjectTimeline:BaseEntity
 {
-    public Guid Id { get; set; }
+    // public Guid Id { get; set; } = Guid.NewGuid();
     public Guid ProjectId { get; set; }
     public Project Project { get; set; } = null!;
     public string PhaseName { get; set; } = string.Empty;       // "UI/UX Design", "API Integration"...

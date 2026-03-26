@@ -1,0 +1,10 @@
+﻿     1>C:\Users\a\Desktop\TaskManagementSystem\backend\Domain\Models\Tag.cs(24,12): error CS0246: ╨¥╨╡ ╤â╨┤╨░╨╗╨╛╤ü╤î ╨╜╨░╨╣╤é╨╕ ╤é╨╕╨┐ ╨╕╨╗╨╕ ╨╕╨╝╤Å ╨┐╤Ç╨╛╤ü╤é╤Ç╨░╨╜╤ü╤é╨▓╨░ ╨╕╨╝╨╡╨╜ "Team" (╨▓╨╛╨╖╨╝╨╛╨╢╨╜╨╛, ╨╛╤é╤ü╤â╤é╤ü╤é╨▓╤â╨╡╤é ╨┤╨╕╤Ç╨╡╨║╤é╨╕╨▓╨░ using ╨╕╨╗╨╕ ╤ü╤ü╤ï╨╗╨║╨░ ╨╜╨░ ╤ü╨▒╨╛╤Ç╨║╤â). [C:\Users\a\Desktop\TaskManagementSystem\backend\Domain\Domain.csproj]
+     1>C:\Users\a\Desktop\TaskManagementSystem\backend\Domain\Models\TaskTimeLog.cs(9,12): error CS0104: "Task" ╤Å╨▓╨╗╤Å╨╡╤é╤ü╤Å ╨╜╨╡╨╛╨┤╨╜╨╛╨╖╨╜╨░╤ç╨╜╨╛╨╣ ╤ü╤ü╤ï╨╗╨║╨╛╨╣ ╨╝╨╡╨╢╨┤╤â "Domain.Models.Task" ╨╕ "System.Threading.Tasks.Task". [C:\Users\a\Desktop\TaskManagementSystem\backend\Domain\Domain.csproj]
+     1>C:\Users\a\Desktop\TaskManagementSystem\backend\Domain\Models\TaskComment.cs(8,12): error CS0104: "Task" ╤Å╨▓╨╗╤Å╨╡╤é╤ü╤Å ╨╜╨╡╨╛╨┤╨╜╨╛╨╖╨╜╨░╤ç╨╜╨╛╨╣ ╤ü╤ü╤ï╨╗╨║╨╛╨╣ ╨╝╨╡╨╢╨┤╤â "Domain.Models.Task" ╨╕ "System.Threading.Tasks.Task". [C:\Users\a\Desktop\TaskManagementSystem\backend\Domain\Domain.csproj]
+     1>C:\Users\a\Desktop\TaskManagementSystem\backend\Domain\Models\TaskItem.cs(5,12): error CS0246: ╨¥╨╡ ╤â╨┤╨░╨╗╨╛╤ü╤î ╨╜╨░╨╣╤é╨╕ ╤é╨╕╨┐ ╨╕╨╗╨╕ ╨╕╨╝╤Å ╨┐╤Ç╨╛╤ü╤é╤Ç╨░╨╜╤ü╤é╨▓╨░ ╨╕╨╝╨╡╨╜ "Team" (╨▓╨╛╨╖╨╝╨╛╨╢╨╜╨╛, ╨╛╤é╤ü╤â╤é╤ü╤é╨▓╤â╨╡╤é ╨┤╨╕╤Ç╨╡╨║╤é╨╕╨▓╨░ using ╨╕╨╗╨╕ ╤ü╤ü╤ï╨╗╨║╨░ ╨╜╨░ ╤ü╨▒╨╛╤Ç╨║╤â). [C:\Users\a\Desktop\TaskManagementSystem\backend\Domain\Domain.csproj]
+
+╨₧╤ê╨╕╨▒╨║╨░ ╤ü╨▒╨╛╤Ç╨║╨╕.
+    ╨ƒ╤Ç╨╡╨┤╤â╨┐╤Ç╨╡╨╢╨┤╨╡╨╜╨╕╨╣: 0
+    ╨₧╤ê╨╕╨▒╨╛╨║: 4
+
+╨ƒ╤Ç╨╛╤ê╨╗╨╛ ╨▓╤Ç╨╡╨╝╨╡╨╜╨╕ 00:00:02.29

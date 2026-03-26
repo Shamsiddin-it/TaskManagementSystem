@@ -3,7 +3,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using TaskEntity = global::Task;
+using TaskEntity = Domain.Models.Task;
 
 public class TeamMemberService : ITeamMemberService
 {
@@ -47,7 +47,7 @@ public class TeamMemberService : ITeamMemberService
         }
     }
 
-    public async Task<Response<GetTeamMemberDto>> GetByIdAsync(int id)
+    public async Task<Response<GetTeamMemberDto>> GetByIdAsync(Guid id)
     {
         try
         {
@@ -90,7 +90,7 @@ public class TeamMemberService : ITeamMemberService
             IQueryable<TeamMember> query = _db.TeamMembers.AsNoTracking();
 
             if (filter.TeamId.HasValue) query = query.Where(x => x.TeamId == filter.TeamId.Value);
-            if (filter.UserId.HasValue) query = query.Where(x => x.UserId == filter.UserId.Value);
+            if (!string.IsNullOrEmpty(filter.UserId)) query = query.Where(x => x.UserId == filter.UserId);
             if (filter.DevRole.HasValue) query = query.Where(x => x.DevRole == filter.DevRole.Value);
             if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
             if (filter.JoinedFrom.HasValue) query = query.Where(x => x.JoinedAt >= filter.JoinedFrom.Value);
@@ -127,7 +127,7 @@ public class TeamMemberService : ITeamMemberService
         }
     }
 
-    public async Task<Response<GetTeamMemberDto>> UpdateAsync(int id, UpdateTeamMemberDto dto)
+    public async Task<Response<GetTeamMemberDto>> UpdateAsync(Guid id, UpdateTeamMemberDto dto)
     {
         try
         {
@@ -154,7 +154,7 @@ public class TeamMemberService : ITeamMemberService
         }
     }
 
-    public async Task<Response<bool>> DeleteAsync(int id)
+    public async Task<Response<bool>> DeleteAsync(Guid id)
     {
         try
         {
@@ -176,7 +176,7 @@ public class TeamMemberService : ITeamMemberService
         }
     }
 
-    public async Task<Response<bool>> SetActiveAsync(int id, bool isActive)
+    public async Task<Response<bool>> SetActiveAsync(Guid id, bool isActive)
     {
         try
         {
@@ -198,7 +198,7 @@ public class TeamMemberService : ITeamMemberService
         }
     }
 
-    public async Task<Response<List<GetTeamMemberDto>>> GetTeamMembersAsync(int teamId)
+    public async Task<Response<List<GetTeamMemberDto>>> GetTeamMembersAsync(Guid teamId)
     {
         try
         {
@@ -226,7 +226,7 @@ public class TeamMemberService : ITeamMemberService
         }
     }
 
-    public async Task<Response<GetTeamMemberDto>> GetMemberProfileAsync(int teamId, int userId)
+    public async Task<Response<GetTeamMemberDto>> GetMemberProfileAsync(Guid teamId, string userId)
     {
         try
         {
@@ -245,7 +245,7 @@ public class TeamMemberService : ITeamMemberService
         }
     }
 
-    public async Task<Response<bool>> AssignDevRoleAsync(int teamId, int userId, DevRole role, int actorId)
+    public async Task<Response<bool>> AssignDevRoleAsync(Guid teamId, string userId, DevRole role, string actorId)
     {
         try
         {
@@ -265,7 +265,7 @@ public class TeamMemberService : ITeamMemberService
         }
     }
 
-    public async Task<Response<bool>> RemoveMemberAsync(int teamId, int userId, int actorId)
+    public async Task<Response<bool>> RemoveMemberAsync(Guid teamId, string userId, string actorId)
     {
         try
         {
@@ -285,22 +285,22 @@ public class TeamMemberService : ITeamMemberService
         }
     }
 
-    public System.Threading.Tasks.Task<Response<bool>> AcceptJoinRequestAsync(int joinRequestId)
+    public System.Threading.Tasks.Task<Response<bool>> AcceptJoinRequestAsync(Guid joinRequestId)
     {
         return System.Threading.Tasks.Task.FromResult(new Response<bool>(HttpStatusCode.NotImplemented, "JoinRequest not implemented"));
     }
 
-    public System.Threading.Tasks.Task<Response<bool>> RejectJoinRequestAsync(int joinRequestId)
+    public System.Threading.Tasks.Task<Response<bool>> RejectJoinRequestAsync(Guid joinRequestId)
     {
         return System.Threading.Tasks.Task.FromResult(new Response<bool>(HttpStatusCode.NotImplemented, "JoinRequest not implemented"));
     }
 
-    public System.Threading.Tasks.Task<Response<List<GetJoinRequestDto>>> GetJoinRequestsAsync(int teamId, PaginationFilter filter)
+    public System.Threading.Tasks.Task<Response<List<GetJoinRequestDto>>> GetJoinRequestsAsync(Guid teamId, PaginationFilter filter)
     {
         return System.Threading.Tasks.Task.FromResult(new Response<List<GetJoinRequestDto>>(HttpStatusCode.NotImplemented, "JoinRequest not implemented"));
     }
 
-    public async Task<Response<bool>> UpdateCapacityAsync(int teamId, int userId)
+    public async Task<Response<bool>> UpdateCapacityAsync(Guid teamId, string userId)
     {
         try
         {
@@ -314,7 +314,7 @@ public class TeamMemberService : ITeamMemberService
         }
     }
 
-    public async System.Threading.Tasks.Task RecalculateCapacityAsync(int userId)
+    public async System.Threading.Tasks.Task RecalculateCapacityAsync(string userId)
     {
         var member = await _db.TeamMembers.FirstOrDefaultAsync(x => x.UserId == userId);
         if (member == null) return;

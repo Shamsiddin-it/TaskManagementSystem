@@ -1,26 +1,26 @@
 public interface ITaskService
 {
-    Task<Response<GetTaskDto>> CreateAsync(InsertTaskDto dto);
-    Task<Response<GetTaskDto>> GetByIdAsync(int id);
-    Task<Response<PagedResult<GetTaskDto>>> GetAllAsync(TaskFilter filter, PaginationFilter pagination);
-    Task<Response<GetTaskDto>> UpdateAsync(int id, UpdateTaskDto dto);
-    Task<Response<bool>> DeleteAsync(int id);
-    Task<Response<bool>> SetStatusAsync(int id, TaskStatus status);
+    System.Threading.Tasks.Task<Response<GetTaskDto>> CreateAsync(InsertTaskDto dto);
+    System.Threading.Tasks.Task<Response<GetTaskDto>> GetByIdAsync(Guid id);
+    System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetAllAsync(TaskFilter filter, PaginationFilter pagination);
+    System.Threading.Tasks.Task<Response<GetTaskDto>> UpdateAsync(Guid id, UpdateTaskDto dto);
+    System.Threading.Tasks.Task<Response<bool>> DeleteAsync(Guid id);
+    System.Threading.Tasks.Task<Response<bool>> SetStatusAsync(Guid id, TaskStatus status);
 
-    Task<Response<GetTaskDto>> CreateTaskAsync(InsertTaskDto dto);
-    Task<Response<GetTaskDto>> GetTaskByIdAsync(int id);
-    Task<Response<PagedResult<GetTaskDto>>> GetTeamTasksAsync(int teamId, TaskQueryFilter filter);
-    Task<Response<PagedResult<GetTaskDto>>> GetBacklogTasksAsync(int teamId, PaginationFilter filter);
-    Task<Response<GetTaskDto>> UpdateTaskAsync(int id, UpdateTaskDto dto);
-    Task<Response<bool>> UpdateTaskStatusAsync(int id, TaskStatus status);
-    Task<Response<bool>> AssignTaskAsync(int id, int newAssigneeId, int actorId);
-    Task<Response<bool>> ReassignTaskAsync(int id, int newAssigneeId, int actorId);
-    Task<Response<bool>> SetDeadlineAsync(int id, DateTime? deadline);
-    Task<Response<bool>> SetPriorityAsync(int id, TaskPriority priority);
-    Task<Response<bool>> MoveToSprintAsync(int id, int? sprintId);
-    Task<Response<bool>> DeleteTaskAsync(int id);
-    Task<Response<bool>> ReorderTasksAsync(int teamId, List<TaskOrderUpdateDto> updates);
-    Task<Response<PagedResult<GetTaskDto>>> GetBlockedTasksAsync(int teamId, PaginationFilter filter);
-    Task<Response<bool>> SetBlockedAsync(int id, bool isBlocked, string? reason);
-    System.Threading.Tasks.Task RecalculateSprintPointsAsync(int sprintId);
+    System.Threading.Tasks.Task<Response<GetTaskDto>> CreateTaskAsync(InsertTaskDto dto);
+    System.Threading.Tasks.Task<Response<GetTaskDto>> GetTaskByIdAsync(Guid id);
+    System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetTeamTasksAsync(Guid teamId, TaskQueryFilter filter);
+    System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetBacklogTasksAsync(Guid teamId, PaginationFilter filter);
+    System.Threading.Tasks.Task<Response<GetTaskDto>> UpdateTaskAsync(Guid id, UpdateTaskDto dto);
+    System.Threading.Tasks.Task<Response<bool>> UpdateTaskStatusAsync(Guid id, TaskStatus status);
+    System.Threading.Tasks.Task<Response<bool>> AssignTaskAsync(Guid id, string newAssigneeId, string actorId);
+    System.Threading.Tasks.Task<Response<bool>> ReassignTaskAsync(Guid id, string newAssigneeId, string actorId);
+    System.Threading.Tasks.Task<Response<bool>> SetDeadlineAsync(Guid id, DateTime? deadline);
+    System.Threading.Tasks.Task<Response<bool>> SetPriorityAsync(Guid id, TaskPriority priority);
+    System.Threading.Tasks.Task<Response<bool>> MoveToSprintAsync(Guid id, Guid? sprintId);
+    System.Threading.Tasks.Task<Response<bool>> DeleteTaskAsync(Guid id);
+    System.Threading.Tasks.Task<Response<bool>> ReorderTasksAsync(Guid teamId, List<TaskOrderUpdateDto> updates);
+    System.Threading.Tasks.Task<Response<PagedResult<GetTaskDto>>> GetBlockedTasksAsync(Guid teamId, PaginationFilter filter);
+    System.Threading.Tasks.Task<Response<bool>> SetBlockedAsync(Guid id, bool isBlocked, string? reason);
+    System.Threading.Tasks.Task RecalculateSprintPointsAsync(Guid sprintId);
 }

@@ -1,9 +1,11 @@
+namespace Domain.Models;
+
 public class RetroActionItem : BaseEntity
 {
     // public int Id {get;set;}
     // default: int.Newint()
 
-    public int RetroId {get;set;}
+    public Guid RetroId {get;set;}
     // FK на SprintRetro.
 
     public string Title {get;set;}= null!;
@@ -21,7 +23,7 @@ public class RetroActionItem : BaseEntity
     // Срок выполнения. Nullable.
     // Пример: "By Friday"
 
-    public int? AssignedToId {get;set;}
+    public string? AssignedToId {get;set;}
     // FK на User. Nullable.
     // Кому назначен этот пункт действий.
 

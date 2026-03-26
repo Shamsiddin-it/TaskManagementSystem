@@ -1,10 +1,14 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+
 public class ReportService : IReportService
 {
-    private readonly AppDbContext _db;
+    private readonly ApplicationDbContext _db;
 
-    public ReportService(AppDbContext db) => _db = db;
+    public ReportService(ApplicationDbContext db) => _db = db;
 
-    public async Task<Response<ReportsDashboardDto>> GetDashboardAsync(Guid employerId)
+    public async Task<Response<ReportsDashboardDto>> GetDashboardAsync(string employerId)
     {
         try
         {

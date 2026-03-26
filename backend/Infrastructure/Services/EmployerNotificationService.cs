@@ -1,9 +1,13 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+
 public class EmployerNotificationService : IEmployerNotificationService
 {
-    private readonly AppDbContext _db;
-    public EmployerNotificationService(AppDbContext db) => _db = db;
+    private readonly ApplicationDbContext _db;
+    public EmployerNotificationService(ApplicationDbContext db) => _db = db;
 
-    public async Task<Response<List<EmployerNotificationDto>>> GetNotificationsAsync(Guid employerId)
+    public async Task<Response<List<EmployerNotificationDto>>> GetNotificationsAsync(string employerId)
     {
         try
         {
@@ -56,7 +60,7 @@ public class EmployerNotificationService : IEmployerNotificationService
         }
     }
 
-    public async Task<Response<bool>> MarkAllAsReadAsync(Guid employerId)
+    public async Task<Response<bool>> MarkAllAsReadAsync(string employerId)
     {
         try
         {
@@ -77,24 +81,23 @@ public class EmployerNotificationService : IEmployerNotificationService
     }
 
     public async Task<Response<bool>> CreateNotificationAsync(
-        Guid employerId,
+        string employerId,
         EmployerNotifType type,
         string title,
         string body,
         NotifPriority priority,
-        Guid? relatedProjectId = null)
+        Guid? projectId = null)
     {
         try
         {
             var notif = new EmployerNotification
             {
-                Id = Guid.NewGuid(),
                 EmployerId = employerId,
                 Type = type,
                 Priority = priority,
                 Title = title,
                 Body = body,
-                RelatedProjectId = relatedProjectId,
+                RelatedProjectId = projectId,
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             };

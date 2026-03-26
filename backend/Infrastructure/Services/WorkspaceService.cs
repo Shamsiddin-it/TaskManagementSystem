@@ -1,14 +1,16 @@
 using System.Net;
 using System.Text;
+using Domain.Models;
 using Microsoft.EntityFrameworkCore;
+using TaskEntity = Domain.Models.Task;
 
 public class WorkspaceService : IWorkspaceService
 {
-    private readonly AppDbContext _db;
+    private readonly ApplicationDbContext _db;
 
-    public WorkspaceService(AppDbContext db) => _db = db;
+    public WorkspaceService(ApplicationDbContext db) => _db = db;
 
-    public async Task<Response<WorkspaceOverviewDto>> GetOverviewAsync(Guid employerId)
+    public async Task<Response<WorkspaceOverviewDto>> GetOverviewAsync(string employerId)
     {
         try
         {
@@ -54,7 +56,7 @@ public class WorkspaceService : IWorkspaceService
         }
     }
 
-    public async Task<Response<WorkspaceSettingsDto>> GetSettingsAsync(Guid employerId)
+    public async Task<Response<WorkspaceSettingsDto>> GetSettingsAsync(string employerId)
     {
         try
         {
@@ -67,7 +69,7 @@ public class WorkspaceService : IWorkspaceService
         }
     }
 
-    public async Task<Response<WorkspaceSettingsDto>> UpdateSettingsAsync(Guid employerId, UpdateWorkspaceSettingsDto dto)
+    public async Task<Response<WorkspaceSettingsDto>> UpdateSettingsAsync(string employerId, UpdateWorkspaceSettingsDto dto)
     {
         try
         {
@@ -105,7 +107,7 @@ public class WorkspaceService : IWorkspaceService
         }
     }
 
-    public async Task<Response<WorkspaceSettingsDto>> ApplyIntegrationActionAsync(Guid employerId, string key, string action)
+    public async Task<Response<WorkspaceSettingsDto>> ApplyIntegrationActionAsync(string employerId, string key, string action)
     {
         try
         {
@@ -140,7 +142,7 @@ public class WorkspaceService : IWorkspaceService
         }
     }
 
-    public async Task<Response<WorkspaceActionResultDto>> CancelPlanAsync(Guid employerId)
+    public async Task<Response<WorkspaceActionResultDto>> CancelPlanAsync(string employerId)
     {
         try
         {
@@ -162,7 +164,7 @@ public class WorkspaceService : IWorkspaceService
         }
     }
 
-    public async Task<Response<WorkspaceActionResultDto>> RequestExportAsync(Guid employerId)
+    public async Task<Response<WorkspaceActionResultDto>> RequestExportAsync(string employerId)
     {
         try
         {
@@ -177,7 +179,7 @@ public class WorkspaceService : IWorkspaceService
         }
     }
 
-    public async Task<Response<WorkspaceActionResultDto>> ManageSsoAsync(Guid employerId)
+    public async Task<Response<WorkspaceActionResultDto>> ManageSsoAsync(string employerId)
     {
         try
         {
@@ -196,7 +198,7 @@ public class WorkspaceService : IWorkspaceService
         }
     }
 
-    public async Task<Response<WorkspaceExportFileDto>> DownloadInvoicesAsync(Guid employerId)
+    public async Task<Response<WorkspaceExportFileDto>> DownloadInvoicesAsync(string employerId)
     {
         try
         {
@@ -214,7 +216,7 @@ public class WorkspaceService : IWorkspaceService
             builder.AppendLine("Date,Description,Amount,ProjectId,BillingEmail,Plan");
             foreach (var invoice in invoices)
             {
-                builder.AppendLine($"{invoice.RecordDate:yyyy-MM-dd},\"{invoice.Description.Replace("\"", "\"\"")}\",{invoice.Amount},{invoice.ProjectId},{settings.BillingEmail},{settings.PlanName}");
+                builder.AppendLine($"{invoice.RecordDate:yyyy-MM-dd},\"{(invoice.Description ?? string.Empty).Replace("\"", "\"\"")}\",{invoice.Amount},{invoice.ProjectId},{settings.BillingEmail},{settings.PlanName}");
             }
 
             if (invoices.Count == 0)
@@ -238,13 +240,15 @@ public class WorkspaceService : IWorkspaceService
         }
     }
 
-    public async Task<Response<WorkspaceActionResultDto>> CloseOrganizationAsync(Guid employerId)
+    public async Task<Response<WorkspaceActionResultDto>> CloseOrganizationAsync(string employerId)
     {
         try
         {
             var employer = await _db.Users.FirstOrDefaultAsync(x => x.Id == employerId && x.Role == UserRole.Employer);
             if (employer == null)
+            {
                 return new Response<WorkspaceActionResultDto>(HttpStatusCode.NotFound, "Employer not found");
+            }
 
             employer.IsActive = false;
             employer.UpdatedAt = DateTime.UtcNow;
@@ -267,7 +271,7 @@ public class WorkspaceService : IWorkspaceService
         }
     }
 
-    private async Task<WorkspaceSettingsDto> BuildSettingsDtoAsync(Guid employerId)
+    private async Task<WorkspaceSettingsDto> BuildSettingsDtoAsync(string employerId)
     {
         var settings = await EnsureSettingsAsync(employerId);
         var integrations = await EnsureIntegrationsAsync(employerId);
@@ -336,18 +340,20 @@ public class WorkspaceService : IWorkspaceService
         };
     }
 
-    private async Task<WorkspaceSettings> EnsureSettingsAsync(Guid employerId)
+    private async Task<WorkspaceSettings> EnsureSettingsAsync(string employerId)
     {
         var settings = await _db.WorkspaceSettings.FirstOrDefaultAsync(x => x.EmployerId == employerId);
-        if (settings != null) return settings;
+        if (settings != null)
+        {
+            return settings;
+        }
 
         var employer = await _db.Users.FirstAsync(x => x.Id == employerId);
         settings = new WorkspaceSettings
         {
-            Id = Guid.NewGuid(),
             EmployerId = employerId,
             OrganizationName = string.IsNullOrWhiteSpace(employer.FullName) ? "New Organization" : employer.FullName,
-            OrganizationCode = $"ORG-{employerId.ToString("N")[..4].ToUpper()}",
+            OrganizationCode = $"ORG-{employerId.Replace("-", string.Empty)[..Math.Min(4, employerId.Replace("-", string.Empty).Length)].ToUpper()}",
             PrimaryContactName = employer.FullName,
             ContactEmailAddress = employer.Email,
             CompanyWebsite = string.Empty,
@@ -364,23 +370,26 @@ public class WorkspaceService : IWorkspaceService
         return settings;
     }
 
-    private async Task<List<WorkspaceIntegration>> EnsureIntegrationsAsync(Guid employerId)
+    private async Task<List<WorkspaceIntegration>> EnsureIntegrationsAsync(string employerId)
     {
         var integrations = await _db.WorkspaceIntegrations
             .Where(x => x.EmployerId == employerId)
             .OrderBy(x => x.CreatedAt)
             .ToListAsync();
 
-        if (integrations.Count > 0) return integrations;
+        if (integrations.Count > 0)
+        {
+            return integrations;
+        }
 
         integrations =
         [
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "okta", Name = "Okta", Status = "Connected", IsConnected = true, Accent = "okta" },
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "google", Name = "Google Workspace", Status = "Connected", IsConnected = true, Accent = "google" },
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "slack", Name = "Slack Enterprise", Status = "Connected", IsConnected = true, Accent = "slack" },
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "workday", Name = "Workday", Status = "Not connected", IsConnected = false, Accent = "workday" },
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "greenhouse", Name = "Greenhouse", Status = "Connected", IsConnected = true, Accent = "greenhouse" },
-            new WorkspaceIntegration { Id = Guid.NewGuid(), EmployerId = employerId, Key = "salesforce", Name = "Salesforce", Status = "Not connected", IsConnected = false, Accent = "salesforce" }
+            new WorkspaceIntegration { EmployerId = employerId, Key = "okta", Name = "Okta", Status = "Connected", IsConnected = true, Accent = "okta", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new WorkspaceIntegration { EmployerId = employerId, Key = "google", Name = "Google Workspace", Status = "Connected", IsConnected = true, Accent = "google", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new WorkspaceIntegration { EmployerId = employerId, Key = "slack", Name = "Slack Enterprise", Status = "Connected", IsConnected = true, Accent = "slack", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new WorkspaceIntegration { EmployerId = employerId, Key = "workday", Name = "Workday", Status = "Not connected", IsConnected = false, Accent = "workday", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new WorkspaceIntegration { EmployerId = employerId, Key = "greenhouse", Name = "Greenhouse", Status = "Connected", IsConnected = true, Accent = "greenhouse", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new WorkspaceIntegration { EmployerId = employerId, Key = "salesforce", Name = "Salesforce", Status = "Not connected", IsConnected = false, Accent = "salesforce", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
         ];
 
         _db.WorkspaceIntegrations.AddRange(integrations);
@@ -388,11 +397,10 @@ public class WorkspaceService : IWorkspaceService
         return integrations;
     }
 
-    private Task CreateSystemNotificationAsync(Guid employerId, string title, string body)
+    private System.Threading.Tasks.Task CreateSystemNotificationAsync(string employerId, string title, string body)
     {
         _db.EmployerNotifications.Add(new EmployerNotification
         {
-            Id = Guid.NewGuid(),
             EmployerId = employerId,
             Type = EmployerNotifType.System,
             Priority = NotifPriority.Normal,
@@ -402,6 +410,6 @@ public class WorkspaceService : IWorkspaceService
             CreatedAt = DateTime.UtcNow
         });
 
-        return Task.CompletedTask;
+        return System.Threading.Tasks.Task.CompletedTask;
     }
 }

@@ -1,9 +1,11 @@
+namespace Domain.Models;
+
 public class Tag : BaseEntity
 {
     // public int Id{get;set;}
     // default: int.Newint()
 
-    public int TeamId{get;set;}
+    public Guid TeamId{get;set;}
     // FK на Team. Теги создаются на уровне команды,
     // не глобально. Каждая команда имеет свои.
 

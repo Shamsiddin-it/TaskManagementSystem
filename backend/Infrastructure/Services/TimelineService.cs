@@ -1,7 +1,11 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+
 public class TimelineService : ITimelineService
 {
-    private readonly AppDbContext _db;
-    public TimelineService(AppDbContext db) => _db = db;
+    private readonly ApplicationDbContext _db;
+    public TimelineService(ApplicationDbContext db) => _db = db;
 
     public async Task<Response<List<TimelinePhaseDto>>> GetTimelineAsync(Guid projectId)
     {
@@ -42,7 +46,6 @@ public class TimelineService : ITimelineService
 
             var phase = new ProjectTimeline
             {
-                Id = Guid.NewGuid(),
                 ProjectId = projectId,
                 PhaseName = dto.PhaseName,
                 StartDate = dto.StartDate,

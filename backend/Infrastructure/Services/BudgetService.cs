@@ -1,9 +1,13 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+
 public class BudgetService : IBudgetService
 {
-    private readonly AppDbContext _db;
-    public BudgetService(AppDbContext db) => _db = db;
+    private readonly ApplicationDbContext _db;
+    public BudgetService(ApplicationDbContext db) => _db = db;
 
-    public async Task<Response<OrgBudgetDto>> GetOrgBudgetAsync(Guid employerId)
+    public async Task<Response<OrgBudgetDto>> GetOrgBudgetAsync(string employerId)
     {
         try
         {
@@ -33,7 +37,7 @@ public class BudgetService : IBudgetService
         }
     }
 
-    public async Task<Response<bool>> UpdateOrgBudgetAsync(Guid employerId, UpdateOrgBudgetDto dto)
+    public async Task<Response<bool>> UpdateOrgBudgetAsync(string employerId, UpdateOrgBudgetDto dto)
     {
         try
         {
@@ -44,7 +48,6 @@ public class BudgetService : IBudgetService
             {
                 budget = new OrgBudget
                 {
-                    Id = Guid.NewGuid(),
                     EmployerId = employerId,
                     Period = "Custom",
                     CreatedAt = DateTime.UtcNow
@@ -90,7 +93,6 @@ public class BudgetService : IBudgetService
 
             var record = new BudgetRecord
             {
-                Id = Guid.NewGuid(),
                 ProjectId = dto.ProjectId,
                 Description = dto.Description,
                 Amount = dto.Amount,

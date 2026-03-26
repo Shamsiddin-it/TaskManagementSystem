@@ -1,6 +1,6 @@
 public class SprintFilter
 {
-    public int? TeamId { get; set; }
+    public Guid? TeamId { get; set; }
     public SprintStatus? Status { get; set; }
     public DateTime? StartFrom { get; set; }
     public DateTime? StartTo { get; set; }

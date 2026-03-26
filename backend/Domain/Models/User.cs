@@ -1,26 +1,20 @@
 using Microsoft.AspNetCore.Identity;
 
-public class User
+namespace Domain.Models;
+
+public class ApplicationUser : IdentityUser
 {
-    public Guid Id { get; set; }
-    public string FullName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
-    public UserRole Role { get; set; }
+    public string FirstName { get; set; } = null!;
+    public string LastName { get; set; } = string.Empty;
+    public Domain.Enums.UserRole Role { get; set; } = Domain.Enums.UserRole.Worker;
     public string? AvatarUrl { get; set; }
     public string? AvatarInitials { get; set; }
     public string? AvatarColor { get; set; }
-    public OnlineStatus OnlineStatus { get; set; }
+    public OnlineStatus OnlineStatus { get; set; } = OnlineStatus.Offline;
     public DateTime? LastActiveAt { get; set; }
-    public bool IsActive { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-}
-
-public class ApplicationUser : IdentityUser<int>
-{
-    public string FirstName { get; set; } = null!;
-    public string LastName { get; set; } = null!;
-    public string? AvatarUrl { get; set; }
     public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    public string FullName => string.Join(" ", new[] { FirstName, LastName }.Where(static part => !string.IsNullOrWhiteSpace(part)));
 }

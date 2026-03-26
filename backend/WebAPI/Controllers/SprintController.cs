@@ -19,8 +19,8 @@ public class SprintController : ControllerBase
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
         var res = await _service.GetByIdAsync(id);
         return StatusCode(res.StatusCode, res);
@@ -33,29 +33,29 @@ public class SprintController : ControllerBase
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateSprintDto dto)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSprintDto dto)
     {
         var res = await _service.UpdateAsync(id, dto);
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
     {
         var res = await _service.DeleteAsync(id);
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpPatch("{id:int}/status")]
-    public async Task<IActionResult> SetStatus(int id, [FromQuery] SprintStatus status)
+    [HttpPatch("{id:guid}/status")]
+    public async Task<IActionResult> SetStatus(Guid id, [FromQuery] SprintStatus status)
     {
         var res = await _service.SetStatusAsync(id, status);
         return StatusCode(res.StatusCode, res);
     }
 
-    [HttpGet("{id:int}/stats")]
-    public async Task<IActionResult> GetStats(int id)
+    [HttpGet("{id:guid}/stats")]
+    public async Task<IActionResult> GetStats(Guid id)
     {
         var res = await _service.GetSprintStatsAsync(id);
         return StatusCode(res.StatusCode, res);

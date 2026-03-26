@@ -1,12 +1,16 @@
+namespace Domain.Models;
+
+using TaskEntity = Domain.Models.Task;
+
 public class TaskTag : BaseEntity
 {
     // public int Id{get;set;}
     // default: int.Newint()
 
-    public int TaskId{get;set;}
+    public Guid TaskId{get;set;}
     // FK на Task.
 
-    public int TagId{get;set;}
+    public Guid TagId{get;set;}
     // FK на Tag.
     // Комбинация TaskId + TagId должна быть уникальной
     // (один тег нельзя добавить к задаче дважды).
@@ -17,6 +21,6 @@ public class TaskTag : BaseEntity
     // default: DateTime.UtcNow
 
     // Навигационные свойства
-    public Task? Task{get;set;}
+    public TaskEntity? Task{get;set;}
     public Tag? Tag{get;set;}
 }

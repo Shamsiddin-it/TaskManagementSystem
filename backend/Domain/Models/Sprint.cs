@@ -1,9 +1,11 @@
+namespace Domain.Models;
+
 public class Sprint : BaseEntity
 {
     // public int Id{get;set;}
     // default: int.Newint()
 
-    public int TeamId{get;set;}
+    public Guid TeamId{get;set;}
     // FK на Team. Обязателен.
 
     public string Name{get;set;}=null!;

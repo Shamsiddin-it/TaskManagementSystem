@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TaskEntity = global::Task;
+using TaskEntity = Domain.Models.Task;
 
 namespace Infrastructure.Persistence.Configurations;
 

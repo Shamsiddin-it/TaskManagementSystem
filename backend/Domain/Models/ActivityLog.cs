@@ -1,12 +1,14 @@
+namespace Domain.Models;
+
 public class ActivityLog : BaseEntity
 {
     // public int Id{get;set;}
     // default: int.Newint()
 
-    public int TeamId{get;set;}
+    public Guid TeamId{get;set;}
     // FK на Team. К какой команде относится событие.
 
-    public int ActorId{get;set;}
+    public string ActorId{get;set;} = null!;
     // FK на User — кто совершил действие.
 
     public ActionType ActionType{get;set;}
@@ -21,7 +23,7 @@ public class ActivityLog : BaseEntity
     // Например: "Task", "Sprint", "TeamMember".
     // Max 50 символов.
 
-    public int EntityId{get;set;}
+    public Guid EntityId{get;set;}
     // ID конкретной сущности.
     // Например, ID задачи которую переместили.
 

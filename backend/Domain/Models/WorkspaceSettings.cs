@@ -1,7 +1,9 @@
-public class WorkspaceSettings
+namespace Domain.Models;
+
+public class WorkspaceSettings : BaseEntity
 {
-    public Guid Id { get; set; }
-    public Guid EmployerId { get; set; }
+    // public Guid Id { get; set; }
+    public string EmployerId { get; set; }
     public string OrganizationName { get; set; } = string.Empty;
     public string OrganizationCode { get; set; } = string.Empty;
     public string PrimaryContactName { get; set; } = string.Empty;
@@ -30,6 +32,6 @@ public class WorkspaceSettings
     public string AuditLogRetention { get; set; } = "90 Days";
     public string SsoProviderName { get; set; } = "Okta";
     public bool SsoConnected { get; set; } = true;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    // public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    // public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

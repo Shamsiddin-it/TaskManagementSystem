@@ -1,9 +1,11 @@
+namespace Domain.Models;
+
 public class Subtask : BaseEntity
 {
     // public int Id{get;set;}
     // default: int.Newint()
 
-    public int TaskId{get;set;}
+    public Guid TaskId { get; set; }
     // FK на Task. Обязателен.
 
     public string Title{get;set;}=null!;

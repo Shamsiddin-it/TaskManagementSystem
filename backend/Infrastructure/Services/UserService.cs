@@ -1,16 +1,20 @@
+using System.Net;
+using Domain.Models;
+using Microsoft.EntityFrameworkCore;
+
 public class UserService : IUserService
 {
-    private readonly AppDbContext _db;
+    private readonly ApplicationDbContext _db;
 
-    public UserService(AppDbContext db) => _db = db;
+    public UserService(ApplicationDbContext db) => _db = db;
 
-    public async Task<Response<List<UserDirectoryDto>>> GetDirectoryAsync(Guid employerId)
+    public async Task<Response<List<UserDirectoryDto>>> GetDirectoryAsync(string employerId)
     {
         try
         {
             var users = await _db.Users
                 .Where(u => u.Id != employerId && u.Role != UserRole.Employer)
-                .OrderBy(u => u.FullName)
+                .OrderBy(u => u.FirstName)
                 .ToListAsync();
 
             var userIds = users.Select(u => u.Id).ToList();
@@ -40,7 +44,7 @@ public class UserService : IUserService
                 return new UserDirectoryDto
                 {
                     Id = user.Id,
-                    FullName = user.FullName,
+                    FullName = user.FirstName + " " + user.LastName,
                     Email = user.Email,
                     Role = user.Role.ToString(),
                     OnlineStatus = user.OnlineStatus,
@@ -65,24 +69,28 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<Response<UserDirectoryDto>> CreateUserAsync(Guid employerId, CreateUserDto dto)
+    public async Task<Response<UserDirectoryDto>> CreateUserAsync(string employerId, CreateUserDto dto)
     {
         try
         {
             var exists = await _db.Users.AnyAsync(u => u.Email == dto.Email);
             if (exists)
+            {
                 return new Response<UserDirectoryDto>(
                     HttpStatusCode.Conflict, "Email already in use");
+            }
 
-            var user = new User
+            var user = new ApplicationUser
             {
-                Id = Guid.NewGuid(),
-                FullName = dto.FullName,
+                Id = Guid.NewGuid().ToString(),
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
                 Email = dto.Email,
+                UserName = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Role = dto.Role,
-                AvatarInitials = GetInitials(dto.FullName),
-                AvatarColor = PickAvatarColor(dto.FullName),
+                AvatarInitials = GetInitials(dto.FirstName + " " + dto.LastName),
+                AvatarColor = PickAvatarColor(dto.FirstName + " " + dto.LastName),
                 OnlineStatus = dto.OnlineStatus,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
@@ -91,7 +99,7 @@ public class UserService : IUserService
 
             _db.Users.Add(user);
 
-            var skills = dto.Skills
+            var skills = (dto.Skills ?? [])
                 .Where(s => !string.IsNullOrWhiteSpace(s))
                 .Select((skill, index) => new MemberSkill
                 {
@@ -103,7 +111,9 @@ public class UserService : IUserService
                 .ToList();
 
             if (skills.Count > 0)
+            {
                 _db.MemberSkills.AddRange(skills);
+            }
 
             _db.EmployerNotifications.Add(new EmployerNotification
             {
@@ -111,7 +121,7 @@ public class UserService : IUserService
                 EmployerId = employerId,
                 Type = EmployerNotifType.TeamUpdate,
                 Priority = NotifPriority.Normal,
-                Title = $"{dto.FullName} added to workspace",
+                Title = $"{dto.FirstName} {dto.LastName} added to workspace",
                 Body = $"{dto.Role} account created successfully.",
                 ActionLabel = "View Detail",
                 IsRead = false,
@@ -123,7 +133,7 @@ public class UserService : IUserService
             var result = new UserDirectoryDto
             {
                 Id = user.Id,
-                FullName = user.FullName,
+                FullName = $"{user.FirstName} {user.LastName}",
                 Email = user.Email,
                 Role = user.Role.ToString(),
                 OnlineStatus = user.OnlineStatus,

@@ -1,0 +1,37 @@
+@page "/employer/dashboard"
+@attribute [Authorize]
+@layout EmployerShellLayout
+
+<PageTitle>Employer dashboard — Nexus</PageTitle>
+
+<div class="nx-page">
+    <h2 class="nx-page-title">Portfolio overview</h2>
+    <p class="nx-muted">Budget / runway strip from your employer mockups (static).</p>
+
+    <section class="nx-budget-hero nx-mt">
+        <div>
+            <div class="nx-muted nx-sm">Q4 allocation</div>
+            <div class="nx-budget-big">$120,000</div>
+            <div class="nx-muted">Total budget</div>
+        </div>
+        <div>
+            <div class="nx-muted nx-sm">Spent</div>
+            <div class="nx-budget-big nx-gold">$78,000</div>
+            <div class="nx-muted">65% burn</div>
+        </div>
+        <div>
+            <div class="nx-muted nx-sm">Runway</div>
+            <div class="nx-budget-big">3.2 mo</div>
+            <div class="nx-muted">Estimated</div>
+        </div>
+    </section>
+
+    <div class="nx-panel nx-mt">
+        <h3 class="nx-section-title">Projects at risk</h3>
+        <div class="nx-risk-row">
+            <span class="nx-tag nx-tag-danger">At risk</span>
+            <strong>Project Beta</strong>
+            <span class="nx-muted">Milestone slip · 2 critical risks</span>
+        </div>
+    </div>
+</div>

@@ -1,15 +1,19 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Domain.Models;
+using TaskEntity = Domain.Models.Task;
+
 public class ProjectService : IProjectService
 {
-    private readonly AppDbContext _db;
-    public ProjectService(AppDbContext db) => _db = db;
+    private readonly ApplicationDbContext _db;
+    public ProjectService(ApplicationDbContext db) => _db = db;
 
-    public async Task<Response<ProjectResponseDto>> CreateProjectAsync(Guid employerId, CreateProjectDto dto)
+    public async Task<Response<ProjectResponseDto>> CreateProjectAsync(string employerId, CreateProjectDto dto)
     {
         try
         {
             var project = new Project
             {
-                Id = Guid.NewGuid(),
                 Title = dto.Title,
                 Description = dto.Description,
                 EmployerId = employerId,
@@ -26,7 +30,6 @@ public class ProjectService : IProjectService
             _db.Projects.Add(project);
             _db.EmployerNotifications.Add(new EmployerNotification
             {
-                Id = Guid.NewGuid(),
                 EmployerId = employerId,
                 Type = EmployerNotifType.System,
                 Priority = NotifPriority.Normal,
@@ -69,7 +72,6 @@ public class ProjectService : IProjectService
 
             _db.EmployerNotifications.Add(new EmployerNotification
             {
-                Id = Guid.NewGuid(),
                 EmployerId = project.EmployerId,
                 Type = EmployerNotifType.TeamUpdate,
                 Priority = NotifPriority.Normal,
@@ -116,7 +118,7 @@ public class ProjectService : IProjectService
         }
     }
 
-    public async Task<Response<List<ProjectResponseDto>>> GetMyProjectsAsync(Guid employerId)
+    public async Task<Response<List<ProjectResponseDto>>> GetMyProjectsAsync(string employerId)
     {
         try
         {
@@ -195,12 +197,12 @@ public class ProjectService : IProjectService
             {
                 ProjectId = projectId,
                 TotalTasks = tasks.Count,
-                CompletedTasks = tasks.Count(t => t.Status == TaskItemStatus.Done),
+                CompletedTasks = tasks.Count(t => t.Status == TaskStatus.Done),
                 BlockedTasks = tasks.Count(t => t.IsBlocked),
                 TotalMembers = await _db.ProjectMembers
                     .CountAsync(m => m.ProjectId == projectId),
                 CompletionPercent = tasks.Count == 0 ? 0 :
-                    (int)((double)tasks.Count(t => t.Status == TaskItemStatus.Done)
+                    (int)((double)tasks.Count(t => t.Status == TaskStatus.Done)
                           / tasks.Count * 100),
                 BudgetBurnPercent = project.BudgetAllocated > 0
                     ? Math.Round((project.BudgetSpent ?? 0)
@@ -253,7 +255,6 @@ public class ProjectService : IProjectService
 
             _db.EmployerNotifications.Add(new EmployerNotification
             {
-                Id = Guid.NewGuid(),
                 EmployerId = project.EmployerId,
                 Type = EmployerNotifType.MilestoneReached,
                 Priority = NotifPriority.Normal,
@@ -275,7 +276,6 @@ public class ProjectService : IProjectService
         }
     }
 
-    // ─── helper ────────────────────────────────────────────────────────────
     private async Task<ProjectResponseDto> BuildResponseDtoAsync(Project p)
     {
         var teams = await _db.Teams
@@ -306,7 +306,7 @@ public class ProjectService : IProjectService
                 return new ProjectMemberDto
                 {
                     UserId = m.UserId,
-                    FullName = user?.FullName ?? string.Empty,
+                    FullName = ((user?.FirstName ?? string.Empty) + " " + (user?.LastName ?? string.Empty)).Trim(),
                     AvatarInitials = user?.AvatarInitials,
                     AvatarColor = user?.AvatarColor,
                     ProjectRole = m.ProjectRole,

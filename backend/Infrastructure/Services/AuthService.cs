@@ -1,9 +1,17 @@
+using System.Net;
+using System.Security.Claims;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Domain.Models;
+
 public class AuthService : IAuthService
 {
-    private readonly AppDbContext _db;
+    private readonly ApplicationDbContext _db;
     private readonly IConfiguration _configuration;
 
-    public AuthService(AppDbContext db, IConfiguration configuration)
+    public AuthService(ApplicationDbContext db, IConfiguration configuration)
     {
         _db = db;
         _configuration = configuration;
@@ -18,21 +26,21 @@ public class AuthService : IAuthService
                 return new Response<AuthResponseDto>(
                     HttpStatusCode.Conflict, "Email already in use");
 
-            var user = new User
+            var user = new ApplicationUser
             {
-                Id = Guid.NewGuid(),
-                FullName = dto.FullName,
+                Id = Guid.NewGuid().ToString(),
+                FirstName = dto.FirstName,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Role = UserRole.Employer,
-                AvatarInitials = GetInitials(dto.FullName),
+                Role = Domain.Enums.UserRole.Employer,
+                AvatarInitials = GetInitials(dto.FirstName),
                 IsActive = true,
                 OnlineStatus = OnlineStatus.Online,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
 
-            _db.Users.Add(user);
+            _db.Add(user);
             await _db.SaveChangesAsync();
 
             var result = new AuthResponseDto
@@ -40,7 +48,7 @@ public class AuthService : IAuthService
                 Token = GenerateJwt(user),
                 Role = user.Role.ToString(),
                 UserId = user.Id,
-                FullName = user.FullName
+                FirstName = user.FirstName
             };
 
             return new Response<AuthResponseDto>(
@@ -90,18 +98,18 @@ public class AuthService : IAuthService
         }
     }
 
-    private string GenerateJwt(User user)
+    private string GenerateJwt(ApplicationUser user)
     {
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Role, user.Role.ToString()),
-            new(ClaimTypes.Name, user.FullName)
+            new(ClaimTypes.Name, user.UserName)
         };
 
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]!));
+            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(

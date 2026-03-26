@@ -1,0 +1,24 @@
+@inherits LayoutComponentBase
+
+<div class="nx-app">
+    <WorkspaceSidebar />
+    <div class="nx-main">
+        <header class="nx-topbar">
+            <div class="nx-topbar-title">
+                <span class="nx-brand-mark"></span>
+                <div>
+                    <h1 class="nx-title">Workspace</h1>
+                    <p class="nx-subtitle">Focus & productivity</p>
+                </div>
+            </div>
+            <div class="nx-status-chips">
+                <span class="nx-chip nx-chip-online"><span class="nx-dot nx-dot-green"></span> Online</span>
+                <span class="nx-chip"><span class="nx-dot nx-dot-red"></span> Busy</span>
+            </div>
+            <div class="nx-avatar" title="Profile" aria-label="Profile"></div>
+        </header>
+        <main class="nx-content">
+            @Body
+        </main>
+    </div>
+</div>
