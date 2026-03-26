@@ -1,3 +1,5 @@
+using Domain.Models;
+
 public class ProjectRiskConfiguration : IEntityTypeConfiguration<ProjectRisk>
 {
     public void Configure(EntityTypeBuilder<ProjectRisk> builder)
