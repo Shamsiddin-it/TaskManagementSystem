@@ -1,5 +1,3 @@
-using Domain.Models;
-
 public class RetroActionItem : BaseEntity
 {
     // public int Id {get;set;}

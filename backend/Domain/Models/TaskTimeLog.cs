@@ -1,5 +1,3 @@
-using Domain.Models;
-
 public class TaskTimeLog : BaseEntity
 {
     public int TaskId { get; set; }

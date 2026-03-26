@@ -5,20 +5,6 @@
     <ProjectReference Include="..\Application\Application.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.6" />
-    <PackageReference Include="AutoMapper" Version="12.0.1" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.6" />
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -27,10 +13,62 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.14" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.6" />
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.6" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Response\**\*.cs" />
+    <Compile Remove="Data\AppDbContext.cs" />
+    <Compile Remove="Data\Migrations\**\*.cs" />
+    <Compile Remove="Configurations\BudgetRecordConfiguration.cs" />
+    <Compile Remove="Configurations\EmployerNotificationConfiguration.cs" />
+    <Compile Remove="Configurations\MemberSkillConfiguration.cs" />
+    <Compile Remove="Configurations\OrgBudgetConfiguration.cs" />
+    <Compile Remove="Configurations\ProjectChecklistConfiguration.cs" />
+    <Compile Remove="Configurations\ProjectCommentConfiguration.cs" />
+    <Compile Remove="Configurations\ProjectConfiguration.cs" />
+    <Compile Remove="Configurations\ProjectMemberConfiguration.cs" />
+    <Compile Remove="Configurations\ProjectRiskConfiguration.cs" />
+    <Compile Remove="Configurations\ProjectTimelineConfiguration.cs" />
+    <Compile Remove="Configurations\TaskItemConfiguration.cs" />
+    <Compile Remove="Configurations\TeamConfiguration.cs" />
+    <Compile Remove="Configurations\UserConfiguration.cs" />
+    <Compile Remove="Configurations\WorkspaceIntegrationConfiguration.cs" />
+    <Compile Remove="Configurations\WorkspaceSettingsConfiguration.cs" />
+    <Compile Remove="Services\AuthService.cs" />
+    <Compile Remove="Services\BudgetService.cs" />
+    <Compile Remove="Services\EmployerNotificationService.cs" />
+    <Compile Remove="Services\ProjectMemberService.cs" />
+    <Compile Remove="Services\ProjectRiskService.cs" />
+    <Compile Remove="Services\ProjectService.cs" />
+    <Compile Remove="Services\ReportService.cs" />
+    <Compile Remove="Services\TeamService.cs" />
+    <Compile Remove="Services\TimelineService.cs" />
+    <Compile Remove="Services\UserService.cs" />
+    <Compile Remove="Services\WorkspaceService.cs" />
+    <Compile Remove="INterfaces\IAuthService.cs" />
+    <Compile Remove="INterfaces\IBUdgetService.cs" />
+    <Compile Remove="INterfaces\IEmployerNOtificationService.cs" />
+    <Compile Remove="INterfaces\IProjectEiskService.cs" />
+    <Compile Remove="INterfaces\IProjectMemberService.cs" />
+    <Compile Remove="INterfaces\IProjectService.cs" />
+    <Compile Remove="INterfaces\IReportService.cs" />
+    <Compile Remove="INterfaces\ITeamService.cs" />
+    <Compile Remove="INterfaces\IteamLineService.cs" />
+    <Compile Remove="INterfaces\IUserService.cs" />
+    <Compile Remove="INterfaces\IWorkspaceService.cs" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,3 @@
-using Domain.Models;
 public interface ITeamMemberService
 {
     Task<Response<GetTeamMemberDto>> CreateAsync(InsertTeamMemberDto dto);

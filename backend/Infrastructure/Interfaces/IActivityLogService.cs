@@ -1,4 +1,3 @@
-using Domain.Models;
 public interface IActivityLogService
 {
     Task<Response<GetActivityLogDto>> CreateAsync(InsertActivityLogDto dto);

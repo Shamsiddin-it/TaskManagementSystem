@@ -1,5 +1,3 @@
-using Domain.Models;
-
 public class SprintRetro : BaseEntity
 {
     // public int Id{get;set;}

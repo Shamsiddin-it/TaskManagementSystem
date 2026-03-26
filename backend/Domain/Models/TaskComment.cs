@@ -1,5 +1,3 @@
-using Domain.Models;
-
 public class TaskComment : BaseEntity
 {
     public int TaskId { get; set; }

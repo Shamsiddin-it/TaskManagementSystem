@@ -1,5 +1,3 @@
-using Domain.Models;
-
 public class TeamMember : BaseEntity
 {
     // Первичный ключ

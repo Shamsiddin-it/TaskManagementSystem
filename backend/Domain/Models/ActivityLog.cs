@@ -1,5 +1,3 @@
-using Domain.Models;
-
 public class ActivityLog : BaseEntity
 {
     // public int Id{get;set;}
