@@ -1,0 +1,140 @@
+@page "/workspace/notifications"
+@attribute [Authorize]
+@layout NexusShellLayout
+@using TaskManager.Web.Models.Api
+@inject TaskManager.Web.Services.Worker.NotificationApiService NotificationApi
+
+<PageTitle>Notifications — Nexus</PageTitle>
+
+<div class="nx-page nx-notif-page">
+    <div class="nx-notif-head">
+        <div>
+            <h2 class="nx-page-title nx-m0">Notifications</h2>
+            <p class="nx-muted nx-m0" style="display:none;"></p>
+        </div>
+        <button type="button" class="nx-btn-ghost nx-btn-sm" disabled="@_busy" @onclick="MarkAllReadAsync">Mark all read</button>
+    </div>
+    <div class="nx-filter-row">
+        <button type="button" class="nx-filter @FilterClass(FilterKind.All)" @onclick="() => SetFilter(FilterKind.All)">All</button>
+        <button type="button" class="nx-filter @FilterClass(FilterKind.Tasks)" @onclick="() => SetFilter(FilterKind.Tasks)">Tasks</button>
+        <button type="button" class="nx-filter @FilterClass(FilterKind.Comments)" @onclick="() => SetFilter(FilterKind.Comments)">Comments</button>
+        <button type="button" class="nx-filter @FilterClass(FilterKind.Invitations)" @onclick="() => SetFilter(FilterKind.Invitations)">Invitations</button>
+        <button type="button" class="nx-filter @FilterClass(FilterKind.System)" @onclick="() => SetFilter(FilterKind.System)">System</button>
+    </div>
+
+    <div class="nx-notif-list">
+        @if (!string.IsNullOrWhiteSpace(NotificationApi.LastError))
+        {
+            <div class="nx-alert nx-alert-error" role="alert">API error: @NotificationApi.LastError</div>
+        }
+
+        @{
+            var visible = FilterItems(_items).OrderByDescending(x => x.CreatedAt).ToList();
+        }
+
+        @if (visible.Count == 0)
+        {
+            <div class="nx-empty" style="margin-top: 12px;">
+                <h3>No notifications</h3>
+                <p class="nx-muted" style="display:none;"></p>
+            </div>
+        }
+        else
+        {
+            @foreach (var n in visible)
+            {
+                <div class="nx-notif-card @(n.IsRead ? "" : "nx-notif-unread")">
+                    <div class="nx-notif-icon nx-notif-sys"></div>
+                    <div>
+                        <div class="nx-notif-row">
+                            <strong>@n.Title</strong>
+                            <span class="nx-muted nx-sm">@n.CreatedAt.ToLocalTime().ToString("g")</span>
+                        </div>
+                        <div class="nx-muted nx-sm">@n.Body</div>
+                        @if (!n.IsRead)
+                        {
+                            <div class="nx-notif-actions">
+                                <button type="button" class="nx-btn-ghost nx-btn-sm" disabled="@_busy" @onclick="() => MarkReadAsync(n.Id)">Mark read</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private readonly List<GetNotificationDto> _items = [];
+    private bool _busy;
+    private FilterKind _filter = FilterKind.All;
+
+    private enum FilterKind
+    {
+        All,
+        Tasks,
+        Comments,
+        Invitations,
+        System
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        var all = await NotificationApi.GetAllAsync();
+        _items.Clear();
+        _items.AddRange(all);
+    }
+
+    private void SetFilter(FilterKind kind) => _filter = kind;
+
+    private string FilterClass(FilterKind kind) =>
+        _filter == kind ? "nx-filter-on" : string.Empty;
+
+    private IEnumerable<GetNotificationDto> FilterItems(IEnumerable<GetNotificationDto> items)
+    {
+        return _filter switch
+        {
+            FilterKind.Tasks => items.Where(x => x.Type == NotificationType.TaskAssigned || x.Type == NotificationType.TaskDeadline),
+            FilterKind.Comments => items.Where(x => x.Type == NotificationType.NewComment),
+            FilterKind.Invitations => items.Where(x => x.Type == NotificationType.InvitationReceived),
+            FilterKind.System => items.Where(x => x.Type is NotificationType.AbsenceApproved or NotificationType.MemberRemoved),
+            _ => items
+        };
+    }
+
+    private async Task MarkReadAsync(int id)
+    {
+        _busy = true;
+        try
+        {
+            await NotificationApi.MarkAsReadAsync(id);
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task MarkAllReadAsync()
+    {
+        _busy = true;
+        try
+        {
+            foreach (var n in _items.Where(x => !x.IsRead).ToList())
+            {
+                await NotificationApi.MarkAsReadAsync(n.Id);
+            }
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

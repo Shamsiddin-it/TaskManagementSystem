@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Identity;
 using Domain.Models;
 using Microsoft.Extensions.Configuration;

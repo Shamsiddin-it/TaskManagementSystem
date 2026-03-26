@@ -1,0 +1,177 @@
+@page "/workspace/settings"
+@attribute [Authorize]
+@layout NexusShellLayout
+
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthStateProvider
+@inject TaskManager.Web.Services.Worker.UserSettingsApiService UserSettingsApi
+@using TaskManager.Web.Models.Api
+@inject NavigationManager Nav
+
+<PageTitle>Settings</PageTitle>
+
+<div class="nx-settings">
+    <div class="nx-settings-head">
+        <h2 class="nx-page-title nx-m0">System settings</h2>
+        <button type="button" class="nx-btn-primary nx-btn-sm" @onclick="SaveChangesAsync">Save changes</button>
+    </div>
+    <div class="nx-settings-grid">
+        <nav class="nx-settings-nav">
+            <button type="button" class="nx-sn nx-sn-active" @onclick='() => JumpToAsync("sec-general")'>General profile</button>
+            <button type="button" class="nx-sn" @onclick='() => JumpToAsync("sec-focus")'>Focus mode</button>
+            <button type="button" class="nx-sn" @onclick='() => JumpToAsync("sec-theme")'>Interface &amp; theme</button>
+            <button type="button" class="nx-sn" @onclick="GoToNotifications">Notifications</button>
+        </nav>
+        <div class="nx-settings-body">
+            <div id="sec-general"></div>
+            <div class="nx-profile-row">
+                <div class="nx-avatar nx-avatar-lg" aria-label="Profile"></div>
+                <button type="button" class="nx-btn-ghost nx-btn-sm" style="display:none;">Upload photo</button>
+            </div>
+            <label class="nx-field" style="display:none;"><span>Full name</span><input class="nx-input" value="John Doe" /></label>
+            <label class="nx-field" style="display:none;"><span>Title</span><input class="nx-input" value="Senior Frontend Engineer" /></label>
+
+            <div id="sec-theme"></div>
+            <div class="nx-theme-picker nx-mt">
+                <h3 class="nx-section-title nx-section-title-spaced" style="margin-top:0;">Interface &amp; theme</h3>
+
+                <div class="nx-theme-mode-row" role="group" aria-label="Theme mode">
+                    <button type="button"
+                            class='nx-theme-mode-btn @(_theme == "dark" ? "active" : "")'
+                            @onclick='() => ApplyThemeAsync("dark")'>
+                        Black mode
+                    </button>
+                    <button type="button"
+                            class='nx-theme-mode-btn @(_theme == "light" ? "active" : "")'
+                            @onclick='() => ApplyThemeAsync("light")'>
+                        White mode
+                    </button>
+                </div>
+
+                <div style="color: var(--nx-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Accent color</div>
+                <div class="nx-accent-swatch-row">
+                    @foreach (var hex in AccentOptions)
+                    {
+                        <button type="button"
+                                class='nx-accent-swatch @(_accent.Equals(hex, StringComparison.OrdinalIgnoreCase) ? "active" : "")'
+                                style='@($"--sw: {hex};")'
+                                @onclick='() => ApplyAccentAsync(hex)'>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div id="sec-focus"></div>
+            <h3 class="nx-section-title nx-section-title-spaced">Focus mode</h3>
+            <label class="nx-toggle"><input type="checkbox" @bind="_autoFocusEnabled" /> Auto-activate focus mode</label>
+            <label class="nx-toggle"><input type="checkbox" @bind="_blockNotificationsDuringFocus" /> Block desktop notifications</label>
+            <label class="nx-field"><span>Default session (minutes)</span><input class="nx-input" type="number" @bind="_defaultFocusDurationMinutes" /></label>
+
+            <div id="sec-notifications" style="display:none;"></div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _theme = "dark";
+    private string _accent = "#7c3aed";
+    private int _userId;
+    private int? _settingsId;
+
+    private bool _autoFocusEnabled;
+    private bool _blockNotificationsDuringFocus;
+    private int _defaultFocusDurationMinutes = 25;
+
+    private readonly string[] AccentOptions =
+    [
+        "#7c3aed", // purple
+        "#a78bfa", // violet
+        "#3fb950", // green
+        "#38bdf8", // cyan
+        "#f85149", // red
+        "#f59e0b"  // amber
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _theme = (await JSRuntime.InvokeAsync<string>("nexusTheme.getTheme")) ?? "dark";
+            var accent = await JSRuntime.InvokeAsync<string>("nexusTheme.getAccent");
+            if (!string.IsNullOrWhiteSpace(accent))
+                _accent = accent;
+        }
+        catch
+        {
+            // If JS is blocked for some reason, we keep defaults.
+        }
+
+        var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        var sub = state.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(sub, out var userId))
+        {
+            _userId = userId;
+            var settings = await UserSettingsApi.GetByUserIdAsync(userId);
+            if (settings != null)
+            {
+                _settingsId = settings.Id;
+                _autoFocusEnabled = settings.AutoFocusEnabled;
+                _blockNotificationsDuringFocus = settings.BlockNotificationsDuringFocus;
+                _defaultFocusDurationMinutes = settings.DefaultFocusDurationMinutes;
+            }
+        }
+    }
+
+    private async Task ApplyThemeAsync(string theme)
+    {
+        _theme = theme;
+        await JSRuntime.InvokeVoidAsync("nexusTheme.apply", _theme, _accent);
+    }
+
+    private async Task ApplyAccentAsync(string accent)
+    {
+        _accent = accent;
+        await JSRuntime.InvokeVoidAsync("nexusTheme.apply", _theme, _accent);
+    }
+
+    private async Task JumpToAsync(string id)
+    {
+        await JSRuntime.InvokeVoidAsync("nexusUi.scrollToId", id);
+    }
+
+    private void GoToNotifications() => Nav.NavigateTo("/workspace/notifications");
+
+    private async Task SaveChangesAsync()
+    {
+        // Theme is applied immediately on selection; Save persists backend user settings.
+
+        if (_userId <= 0)
+            return;
+
+        if (_settingsId.HasValue)
+        {
+            await UserSettingsApi.UpdateAsync(_settingsId.Value, new UpdateUserSettingsDto
+            {
+                AutoFocusEnabled = _autoFocusEnabled,
+                BlockNotificationsDuringFocus = _blockNotificationsDuringFocus,
+                DefaultFocusDurationMinutes = _defaultFocusDurationMinutes
+            });
+        }
+        else
+        {
+            // Create settings row if it doesn't exist yet.
+            await UserSettingsApi.AddAsync(new CreateUserSettingsDto
+            {
+                UserId = _userId,
+                AutoFocusEnabled = _autoFocusEnabled,
+                BlockNotificationsDuringFocus = _blockNotificationsDuringFocus,
+                DefaultFocusDurationMinutes = _defaultFocusDurationMinutes
+            });
+
+            var settings = await UserSettingsApi.GetByUserIdAsync(_userId);
+            _settingsId = settings?.Id;
+        }
+    }
+}

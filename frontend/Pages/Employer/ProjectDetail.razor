@@ -1,0 +1,46 @@
+@page "/employer/project"
+@attribute [Authorize]
+@layout EmployerShellLayout
+
+<PageTitle>Project Beta — Nexus</PageTitle>
+
+<div class="nx-page nx-project">
+    <nav class="nx-breadcrumb nx-muted">Projects <span class="nx-bc-sep">/</span> <strong class="nx-text">Project Beta</strong></nav>
+    <h1 class="nx-page-title">Project Beta Details</h1>
+    <p class="nx-muted">Gantt + risks + discussion — static layout from Umar-side mockups.</p>
+
+    <section class="nx-panel nx-mt">
+        <h3 class="nx-section-title">Timeline (Gantt)</h3>
+        <div class="nx-gantt">
+            <div class="nx-gantt-row"><span class="nx-gantt-name">UI/UX Design</span><div class="nx-gantt-bar nx-g1"></div></div>
+            <div class="nx-gantt-row"><span class="nx-gantt-name">API integration</span><div class="nx-gantt-bar nx-g2"></div></div>
+            <div class="nx-gantt-row"><span class="nx-gantt-name">Swift refactor</span><div class="nx-gantt-bar nx-g3"></div></div>
+            <div class="nx-gantt-row"><span class="nx-gantt-name">QA testing</span><div class="nx-gantt-bar nx-g4"></div></div>
+        </div>
+    </section>
+
+    <div class="nx-project-grid nx-mt">
+        <section class="nx-panel">
+            <h3 class="nx-section-title">Critical risks (2)</h3>
+            <ul class="nx-risk-list">
+                <li><span class="nx-tag nx-tag-danger">High</span> Vendor API rate limits not contracted</li>
+                <li><span class="nx-tag nx-tag-warn">Medium</span> iOS signing certificate expiry</li>
+            </ul>
+        </section>
+        <section class="nx-panel">
+            <h3 class="nx-section-title">Task breakdown</h3>
+            <div class="nx-progress-label nx-muted">12 / 28 complete</div>
+            <ul class="nx-checklist">
+                <li class="nx-check-done">Provision environments</li>
+                <li class="nx-check-done">CI pipeline</li>
+                <li class="nx-check-blocked">App Store review <span class="nx-tag nx-tag-sm">Blocked</span></li>
+            </ul>
+        </section>
+    </div>
+
+    <section class="nx-panel nx-mt">
+        <h3 class="nx-section-title">Team discussion</h3>
+        <div class="nx-comment"><div class="nx-comment-meta"><strong>Umar</strong> · 1d ago</div><p>Can we pull forward the security review?</p></div>
+        <div class="nx-comment"><div class="nx-comment-meta"><strong>Zulhija</strong> · 20h ago</div><p>Yes — I blocked Tuesday afternoon.</p></div>
+    </section>
+</div>

@@ -1,0 +1,92 @@
+@page "/workspace"
+@attribute [Authorize]
+@layout NexusShellLayout
+@using TaskManager.Web.Models.Api
+@inject TaskManager.Web.Services.Worker.DaySummaryApiService DaySummaryApi
+@inject NavigationManager Nav
+
+<PageTitle>Workspace</PageTitle>
+
+<div class="nx-dashboard">
+    <section class="nx-hero">
+        <h2 class="nx-hero-title">Workspace</h2>
+        <p class="nx-hero-sub">Your horizon is clear. Ready to begin?</p>
+    </section>
+
+    <section class="nx-metrics">
+        <MetricCard Label="Completed today" Value="@CompletedToday.ToString()" Subtitle="tasks" />
+        <MetricCard Label="Current streak" Value="@StreakDays.ToString()" Subtitle="days" />
+        <MetricCard Label="Focus hours" Value="@FocusHoursDisplay" Subtitle="h" />
+        <div class="nx-metric nx-metric-ring">
+            <div class="nx-metric-label">Daily goal</div>
+            <div class="nx-ring-wrap">
+                <svg class="nx-ring" viewBox="0 0 36 36">
+                    <path class="nx-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="nx-ring-fg" stroke-dasharray="@($"{RingPercent:F0}, 100")" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div class="nx-ring-label">@RingLabel</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="nx-dashboard-grid">
+        <section class="nx-panel nx-panel-main">
+            <div class="nx-empty">
+                <div class="nx-empty-icon" aria-hidden="true"></div>
+                <h3>Start something new</h3>
+                @if (!string.IsNullOrWhiteSpace(DaySummaryApi.LastError))
+                {
+                    <div class="nx-alert nx-alert-error" role="alert" style="margin: 10px 0 0;">
+                        API error: @DaySummaryApi.LastError
+                    </div>
+                }
+                <p class="nx-muted">
+                    Your dashboard is ready. Open <a href="/workspace/today">Today’s focus</a> to see your active sessions and control the timer.
+                </p>
+                <input type="text" class="nx-input nx-input-lg" placeholder="What are you working on next?" />
+                <div class="nx-empty-actions">
+                    <button type="button" class="nx-btn-primary" @onclick="GoToToday">+ Add task</button>
+                </div>
+                <div class="nx-empty-secondary">
+                    <a class="nx-btn-outline nx-btn-link" href="/workspace/backlog">Browse backlog</a>
+                </div>
+            </div>
+        </section>
+
+        <aside class="nx-panel nx-panel-side">
+            <div class="nx-side-block">
+                <h4>Quick notes</h4>
+                <textarea class="nx-textarea" rows="5" placeholder="Jot down temporary thoughts…"></textarea>
+            </div>
+            <div class="nx-quote">
+                <p>“The secret of getting ahead is getting started.”</p>
+                <span class="nx-quote-author">— Mark Twain</span>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@code {
+    private const decimal DailyGoalHours = 8m;
+
+    private GetDaySummaryDto? _summary;
+
+    private int CompletedToday => _summary?.TasksCompleted ?? 0;
+    private int StreakDays => _summary?.StreakDays ?? 0;
+    private decimal FocusHours => _summary?.FocusHours ?? 0m;
+    private string FocusHoursDisplay => FocusHours.ToString("0.0");
+
+    private decimal RingPercent =>
+        DailyGoalHours <= 0 ? 0 : Math.Clamp((FocusHours / DailyGoalHours) * 100m, 0m, 100m);
+
+    private string RingLabel => $"{FocusHours.ToString("0.0")} / {DailyGoalHours} hrs";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Backend only has "GetAll", so we filter by today's date.
+        var all = await DaySummaryApi.GetAllAsync();
+        _summary = all.FirstOrDefault(x => x.SummaryDate.Date == DateTime.Today);
+    }
+
+    private void GoToToday() => Nav.NavigateTo("/workspace/today");
+}

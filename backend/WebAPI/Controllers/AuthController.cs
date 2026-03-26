@@ -1,5 +1,7 @@
-using SystemTask = System.Threading.Tasks.Task;
+using System.Security.Claims;
+using Domain.Enums;
 using Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,6 +31,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
         if (await _userManager.FindByEmailAsync(dto.Email) is not null)
@@ -36,13 +39,15 @@ public class AuthController : ControllerBase
             return Conflict(new { message = "Email already in use." });
         }
 
+        var role = NormalizeRole(dto.Email, dto.Role);
+
         var user = new ApplicationUser
         {
             UserName = dto.Email,
             Email = dto.Email,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
-            Role = NormalizeRole(dto.Email, dto.Role),
+            Role = role,
             AvatarInitials = GetInitials(dto.FirstName, dto.LastName),
             AvatarColor = GetAvatarColor(dto.Email),
             OnlineStatus = OnlineStatus.Offline,
@@ -65,12 +70,14 @@ public class AuthController : ControllerBase
             Email = user.Email ?? dto.Email,
             Role = user.Role.ToString(),
             UserId = user.Id,
-            FullName = user.FullName
+            FullName = user.FullName,
+            FirstName = user.FirstName
         });
     }
 
     [HttpPost("register/employer")]
-    public async Task<IActionResult> RegisterEmployer(RegisterEmployerDto dto)
+    [AllowAnonymous]
+    public Task<IActionResult> RegisterEmployer(RegisterEmployerDto dto)
     {
         var registerDto = new RegisterDto
         {
@@ -81,10 +88,11 @@ public class AuthController : ControllerBase
             Role = UserRole.Employer
         };
 
-        return await Register(registerDto);
+        return Register(registerDto);
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login(LoginDto dto)
     {
         await EnsureSpecialUsersAsync(dto.Email, dto.Password);
@@ -120,11 +128,39 @@ public class AuthController : ControllerBase
             Email = user.Email ?? dto.Email,
             Role = user.Role.ToString(),
             UserId = user.Id,
-            FullName = user.FullName
+            FullName = user.FullName,
+            FirstName = user.FirstName
         });
     }
 
-    private async SystemTask EnsureSpecialUsersAsync(string email, string password)
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> Me()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized(new { message = "Invalid token." });
+        }
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            return NotFound(new { message = "User not found." });
+        }
+
+        return Ok(new AuthResponseDto
+        {
+            Token = string.Empty,
+            Email = user.Email ?? string.Empty,
+            Role = user.Role.ToString(),
+            UserId = user.Id,
+            FullName = user.FullName,
+            FirstName = user.FirstName
+        });
+    }
+
+    private async System.Threading.Tasks.Task EnsureSpecialUsersAsync(string email, string password)
     {
         if (email.Equals(EmployerEmail, StringComparison.OrdinalIgnoreCase) && password == EmployerPassword)
         {
@@ -138,7 +174,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    private async SystemTask EnsureUserExists(string email, string password, string firstName, string lastName, UserRole role)
+    private async System.Threading.Tasks.Task EnsureUserExists(string email, string password, string firstName, string lastName, UserRole role)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user is not null)
@@ -150,6 +186,13 @@ public class AuthController : ControllerBase
             user.AvatarInitials ??= GetInitials(user.FirstName, user.LastName);
             user.AvatarColor ??= GetAvatarColor(email);
             user.UpdatedAt = DateTime.UtcNow;
+
+            if (!await _userManager.CheckPasswordAsync(user, password))
+            {
+                var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+                await _userManager.ResetPasswordAsync(user, resetToken, password);
+            }
+
             await EnsureIdentityRoleAsync(user);
             await _userManager.UpdateAsync(user);
             return;
@@ -179,7 +222,7 @@ public class AuthController : ControllerBase
         await EnsureIdentityRoleAsync(user);
     }
 
-    private async SystemTask EnsureIdentityRoleAsync(ApplicationUser user)
+    private async System.Threading.Tasks.Task EnsureIdentityRoleAsync(ApplicationUser user)
     {
         var expectedRole = GetIdentityRoleName(user.Role);
         var existingRoles = await _userManager.GetRolesAsync(user);
@@ -207,9 +250,7 @@ public class AuthController : ControllerBase
             return UserRole.TeamLead;
         }
 
-        return requestedRole == UserRole.Employer || requestedRole == UserRole.TeamLead
-            ? requestedRole
-            : UserRole.Worker;
+        return UserRole.Worker;
     }
 
     private static UserRole ResolveLoginRole(string email, UserRole currentRole)
@@ -224,9 +265,7 @@ public class AuthController : ControllerBase
             return UserRole.TeamLead;
         }
 
-        return currentRole == UserRole.Employer || currentRole == UserRole.TeamLead
-            ? currentRole
-            : UserRole.Worker;
+        return UserRole.Worker;
     }
 
     private static string GetIdentityRoleName(UserRole role) => role switch

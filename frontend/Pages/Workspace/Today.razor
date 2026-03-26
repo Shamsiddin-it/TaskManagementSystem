@@ -1,0 +1,194 @@
+@page "/workspace/today"
+@attribute [Authorize]
+@layout NexusShellLayout
+@using TaskManager.Web.Models.Api
+@inject TaskManager.Web.Services.Worker.FocusSessionApiService FocusApi
+@inject NavigationManager Nav
+
+<PageTitle>Today’s focus</PageTitle>
+
+<div class="nx-dashboard">
+    <section class="nx-hero nx-hero-row">
+        <div>
+            <h2 class="nx-hero-title">Today’s focus</h2>
+            <p class="nx-hero-sub">Focus mode active · live sessions</p>
+        </div>
+        <div class="nx-status-chips">
+            <span class="nx-chip nx-chip-online"><span class="nx-dot nx-dot-green"></span> Online</span>
+            <span class="nx-chip"><span class="nx-dot nx-dot-amber"></span> Away</span>
+            <span class="nx-chip"><span class="nx-dot nx-dot-red"></span> Busy</span>
+        </div>
+    </section>
+
+    <section class="nx-metrics">
+        <MetricCard Label="Completed today" Value="@CompletedToday.ToString()" Subtitle="tasks" />
+        <MetricCard Label="Current streak" Value="@StreakDays.ToString()" Subtitle="days" />
+        <MetricCard Label="Focus hours" Value="@FocusHoursDisplay" Subtitle="h" />
+        <div class="nx-metric nx-metric-ring">
+            <div class="nx-metric-label">Daily goal</div>
+            <div class="nx-ring-wrap">
+                <svg class="nx-ring" viewBox="0 0 36 36">
+                    <path class="nx-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="nx-ring-fg" stroke-dasharray="@($"{RingPercent:F0}, 100")" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div class="nx-ring-label">@RingLabel</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="nx-dashboard-grid">
+        <section class="nx-panel nx-panel-main">
+            <h3 class="nx-section-title">Active tasks</h3>
+            <div class="nx-task-list">
+                @if (!string.IsNullOrWhiteSpace(FocusApi.LastError))
+                {
+                    <div class="nx-alert nx-alert-error" role="alert">
+                        API error: @FocusApi.LastError
+                    </div>
+                }
+                @if (_activeSessions.Count == 0)
+                {
+                    <div class="nx-empty nx-task-empty" style="margin-top: 16px;">
+                        <h3>No active focus sessions</h3>
+                        <p class="nx-muted">Nothing to pause/complete yet. Go back to <a href="/workspace">dashboard</a>.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var fs in _activeSessions)
+                    {
+                        var priority = fs.Task?.Priority ?? string.Empty;
+                        var priorityIsHigh = priority.ToLowerInvariant().Contains("high");
+                        var taskTitle = fs.Task?.Title ?? $"Task #{fs.TaskId}";
+
+                        <a class="nx-task-card" href="/workspace/tasks/@fs.Id">
+                            <div class="nx-task-card-top">
+                                <span class="nx-tag @(priorityIsHigh ? "nx-tag-danger" : "")">@priorityOrFallback(priority)</span>
+                                <span class="nx-tag">@fs.Task?.Team?.Name ?? "Team"</span>
+                                <span class="nx-task-status">In progress</span>
+                            </div>
+                            <h4>@taskTitle</h4>
+                            <p class="nx-muted nx-task-desc">
+                                @(string.IsNullOrWhiteSpace(fs.Task?.Description) ? "No description yet." : fs.Task!.Description)
+                            </p>
+                            <div class="nx-task-actions">
+                                <button type="button"
+                                        class="nx-mini-btn"
+                                        @onclick:preventDefault="true"
+                                        @onclick:stopPropagation="true"
+                                        disabled="@_busy"
+                                        @onclick="() => PauseAsync(fs.Id)">
+                                    Pause
+                                </button>
+                                <button type="button"
+                                        class="nx-mini-btn nx-mini-btn-muted"
+                                        @onclick:preventDefault="true"
+                                        @onclick:stopPropagation="true"
+                                        disabled="@_busy"
+                                        @onclick="() => CompleteAsync(fs.Id)">
+                                    Complete
+                                </button>
+                            </div>
+                        </a>
+                    }
+                }
+            </div>
+
+            <h3 class="nx-section-title nx-section-title-spaced">Suggested templates</h3>
+            <div class="nx-template-grid">
+                <div class="nx-template-card"><span class="nx-template-cat">Routine</span><strong>Review PR backlog</strong><span>45m</span></div>
+                <div class="nx-template-card"><span class="nx-template-cat">DevOps</span><strong>Deploy checklist</strong><span>30m</span></div>
+                <div class="nx-template-card"><span class="nx-template-cat">Admin</span><strong>Weekly sync notes</strong><span>20m</span></div>
+            </div>
+        </section>
+
+        <aside class="nx-panel nx-panel-side">
+            <div class="nx-side-block">
+                <h4>Quick notes</h4>
+                <textarea class="nx-textarea" rows="4" placeholder="Jot down temporary thoughts…"></textarea>
+            </div>
+            <div class="nx-side-block">
+                <h4>Upcoming deadlines</h4>
+                <ul class="nx-deadline-list">
+                    <li><strong>Q3 reporting</strong><span class="nx-muted">Analytics · in 2h</span></li>
+                    <li><strong>Security audit</strong><span class="nx-muted">Core · tomorrow</span></li>
+                </ul>
+            </div>
+            <div class="nx-side-block">
+                <h4>Recent activity</h4>
+                <ul class="nx-mini-feed">
+                    <li>Started API integration <span class="nx-muted">15m ago</span></li>
+                    <li>Timer stopped <span class="nx-muted">1h ago</span></li>
+                </ul>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@code {
+    private const decimal DailyGoalHours = 8m;
+
+    private readonly List<GetFocusSessionDto> _activeSessions = [];
+    private bool _busy;
+
+    // Keeping dashboard-like metrics here too (we compute minimal ones from sessions until DaySummary wiring is added).
+    private int CompletedToday => _allSessions?.Count(x => x.Status == FocusSessionStatus.Completed) ?? 0;
+    private int StreakDays => 0;
+    private decimal FocusHours =>
+        _allSessions == null
+            ? 0m
+            : _allSessions
+                .Where(x => x.Status == FocusSessionStatus.Active || x.Status == FocusSessionStatus.Paused)
+                .Select(x => x.DurationMinutes ?? 0)
+                .Sum() / 60m;
+    private string FocusHoursDisplay => FocusHours.ToString("0.0");
+
+    private decimal RingPercent =>
+        DailyGoalHours <= 0 ? 0 : Math.Clamp((FocusHours / DailyGoalHours) * 100m, 0m, 100m);
+
+    private string RingLabel => $"{FocusHours.ToString("0.0")} / {DailyGoalHours} hrs";
+
+    private List<GetFocusSessionDto>? _allSessions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allSessions = await FocusApi.GetAllAsync();
+        _activeSessions.Clear();
+        _activeSessions.AddRange(_allSessions.Where(x => x.Status == FocusSessionStatus.Active).ToList());
+    }
+
+    private string priorityOrFallback(string priority) =>
+        string.IsNullOrWhiteSpace(priority) ? "Priority" : priority;
+
+    private async Task PauseAsync(int focusSessionId)
+    {
+        _busy = true;
+        try
+        {
+            await FocusApi.PauseAsync(focusSessionId);
+            _allSessions = await FocusApi.GetAllAsync();
+            _activeSessions.Clear();
+            _activeSessions.AddRange(_allSessions.Where(x => x.Status == FocusSessionStatus.Active).ToList());
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task CompleteAsync(int focusSessionId)
+    {
+        _busy = true;
+        try
+        {
+            await FocusApi.CompleteAsync(focusSessionId);
+            _allSessions = await FocusApi.GetAllAsync();
+            _activeSessions.Clear();
+            _activeSessions.AddRange(_allSessions.Where(x => x.Status == FocusSessionStatus.Active).ToList());
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

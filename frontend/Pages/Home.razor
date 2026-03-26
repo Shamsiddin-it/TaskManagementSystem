@@ -1,0 +1,16 @@
+@page "/"
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthState
+
+<PageTitle>Nexus</PageTitle>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        if (state.User.Identity?.IsAuthenticated == true)
+            Nav.NavigateTo("/workspace/today", replace: true);
+        else
+            Nav.NavigateTo("/login", replace: true);
+    }
+}
