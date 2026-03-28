@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { getUsers } from '../../api';
-import { Search, Plus } from 'lucide-react';
+import { createUser, getUsers } from '../../api';
+import { Search, Plus, X } from 'lucide-react';
 
 export default function EmployerTeamDirectory() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
+  const [query, setQuery] = useState('');
+  const [openModal, setOpenModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [form, setForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    role: 2,
+  });
 
   useEffect(() => {
     async function loadTeam() {
@@ -22,6 +32,57 @@ export default function EmployerTeamDirectory() {
     loadTeam();
   }, []);
 
+  const filteredUsers = users.filter((user) => {
+    const haystack = [
+      user.fullName,
+      user.email,
+      user.role,
+      ...(user.skills || []),
+      ...(user.currentProjects || []),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    return haystack.includes(query.trim().toLowerCase());
+  });
+
+  const handleCreateMember = async (event) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setCreateError('Please log in again.');
+      return;
+    }
+
+    setCreating(true);
+    setCreateError('');
+
+    const createdUser = await createUser(token, {
+      fullName: form.fullName.trim(),
+      email: form.email.trim(),
+      password: form.password,
+      role: form.role,
+    });
+
+    if (!createdUser) {
+      setCreateError('Failed to create member.');
+      setCreating(false);
+      return;
+    }
+
+    setUsers((current) => [createdUser, ...current]);
+      setForm({
+        fullName: '',
+        email: '',
+        password: '',
+        role: 2,
+      });
+    setCreating(false);
+    setOpenModal(false);
+  };
+
   if (loading) {
     return (
       <div className="flex h-full flex-col items-center justify-center">
@@ -32,28 +93,91 @@ export default function EmployerTeamDirectory() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col">
+      {openModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-[#1C212B] bg-[#0D1117] shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#1C212B] px-6 py-5">
+              <div>
+                <h2 className="text-xl font-bold text-white tracking-tight">Add Team Member</h2>
+                <p className="text-sm text-gray-400">Create a real workspace user in the backend.</p>
+              </div>
+              <button onClick={() => setOpenModal(false)} className="rounded-xl bg-[#161B22] p-2 text-gray-500 hover:text-white">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateMember} className="space-y-5 px-6 py-6">
+              <InputField label="Full name" value={form.fullName} onChange={(value) => setForm((current) => ({ ...current, fullName: value }))} />
+              <InputField label="Email" type="email" value={form.email} onChange={(value) => setForm((current) => ({ ...current, email: value }))} />
+              <InputField label="Password" type="password" value={form.password} onChange={(value) => setForm((current) => ({ ...current, password: value }))} />
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500">Role</label>
+                <select
+                  value={form.role}
+                  onChange={(event) => setForm((current) => ({ ...current, role: Number(event.target.value) }))}
+                  className="w-full rounded-lg border border-[#1C212B] bg-[#06080A] p-3 text-sm text-white"
+                >
+                  <option value={2}>Worker</option>
+                  <option value={1}>Team Lead</option>
+                </select>
+              </div>
+              {createError ? <div className="text-sm text-red-400">{createError}</div> : null}
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setOpenModal(false)} className="rounded-lg px-4 py-2 text-sm font-medium text-gray-400 hover:text-white">
+                  Cancel
+                </button>
+                <button type="submit" disabled={creating} className="rounded-lg bg-gradient-to-r from-purple-600 to-purple-500 px-5 py-2 text-sm font-medium text-white disabled:opacity-50">
+                  {creating ? 'Creating...' : 'Create Member'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">Team Directory</h1>
-          <p className="text-gray-400 text-sm">{users.length} Active members across departments.</p>
+          <p className="text-gray-400 text-sm">{filteredUsers.length} active members across departments.</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative">
-            <input type="text" placeholder="Search team members, skills..." className="w-64 bg-[#0D1117]/80 backdrop-blur-sm border border-[#1C212B] text-white rounded-xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-purple-500/50 transition-colors" />
+            <input
+              type="text"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search team members, skills..."
+              className="w-64 bg-[#0D1117]/80 backdrop-blur-sm border border-[#1C212B] text-white rounded-xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
+            />
             <Search className="absolute left-3.5 top-3 w-4 h-4 text-gray-500" />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] text-white font-medium text-sm rounded-xl transition-all">
+          <button onClick={() => setOpenModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] text-white font-medium text-sm rounded-xl transition-all">
             <Plus size={16} /> Add Member
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        {users.map(user => (
+        {filteredUsers.map(user => (
           <TeamCard key={user.id} user={user} />
         ))}
       </div>
     </motion.div>
+  );
+}
+
+function InputField({ label, value, onChange, type = 'text' }) {
+  return (
+    <div>
+      <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-lg border border-[#1C212B] bg-[#06080A] p-3 text-sm text-white"
+        required
+      />
+    </div>
   );
 }
 

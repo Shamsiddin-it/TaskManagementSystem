@@ -3,18 +3,66 @@ import { motion } from 'framer-motion';
 import { getProjects } from '../../api';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import CreateProjectModal from '../../components/employer/CreateProjectModal.jsx';
 
 const COLUMNS = [
   { id: 'planning', label: 'PLANNING', dbStatus: 'Planning', color: 'bg-gray-500' },
   { id: 'in_progress', label: 'IN PROGRESS', dbStatus: 'Active', color: 'bg-purple-500' },
-  { id: 'at_risk', label: 'AT RISK', dbStatus: 'At Risk', color: 'bg-amber-500' },
-  { id: 'done', label: 'DONE', dbStatus: 'Completed', color: 'bg-green-500' }
+  { id: 'at_risk', label: 'AT RISK', dbStatus: 'AtRisk', color: 'bg-amber-500' },
+  { id: 'paused', label: 'PAUSED', dbStatus: 'Paused', color: 'bg-blue-500' },
+  { id: 'done', label: 'DONE', dbStatus: 'Completed', color: 'bg-green-500' },
+  { id: 'archived', label: 'ARCHIVED', dbStatus: 'Archived', color: 'bg-slate-500' }
 ];
+
+const projectStatusLabels = {
+  0: 'Planning',
+  1: 'Active',
+  2: 'AtRisk',
+  3: 'Paused',
+  4: 'Completed',
+  5: 'Archived',
+};
+
+const projectTypeLabels = {
+  0: 'Enterprise',
+  1: 'Mobile',
+  2: 'Api',
+  3: 'Web',
+  4: 'Internal',
+  5: 'RD',
+  6: 'Marketing',
+  7: 'Security',
+  8: 'Fintech',
+  9: 'Core',
+  10: 'DevOps',
+  11: 'UiUx',
+};
+
+function getProjectStatusLabel(status) {
+  if (typeof status === 'number') {
+    return projectStatusLabels[status] || String(status);
+  }
+
+  return String(status || '');
+}
+
+function getProjectTypeLabel(type) {
+  if (typeof type === 'number') {
+    return projectTypeLabels[type] || `Type ${type}`;
+  }
+
+  return String(type || '');
+}
+
+function normalizeStatus(status) {
+  return getProjectStatusLabel(status).replace(/\s+/g, '').toLowerCase();
+}
 
 export default function EmployerProjectsBoard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   useEffect(() => {
     async function fetchProjects() {
@@ -32,6 +80,13 @@ export default function EmployerProjectsBoard() {
     fetchProjects();
   }, [navigate]);
 
+  const handleProjectCreated = (createdProject) => {
+    setProjects((current) => [createdProject, ...current]);
+    if (createdProject?.id) {
+      navigate(`/employer/projects/${createdProject.id}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-full flex-col items-center justify-center">
@@ -46,17 +101,26 @@ export default function EmployerProjectsBoard() {
       animate={{ opacity: 1 }}
       className="h-full flex flex-col"
     >
+      <CreateProjectModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onCreated={handleProjectCreated}
+      />
+
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">Projects Board</h1>
-          <p className="text-gray-400 text-sm">{projects.length} active projects across 4 stages</p>
+          <p className="text-gray-400 text-sm">{projects.length} projects across delivery stages</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex p-1 bg-[#1C212B] rounded-lg border border-[#2D3342]">
              <button className="px-4 py-1.5 text-xs font-medium bg-[#252A36] text-white rounded-md shadow-sm border border-[#2D3342]/50">Board</button>
              <button className="px-4 py-1.5 text-xs font-medium text-gray-400 hover:text-white transition-colors">List View</button>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] text-white rounded-lg text-sm font-medium transition-all">
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] text-white rounded-lg text-sm font-medium transition-all"
+          >
             <Plus size={16} />
             Create Project
           </button>
@@ -65,11 +129,8 @@ export default function EmployerProjectsBoard() {
 
       <div className="flex-1 flex gap-6 overflow-x-auto custom-scrollbar pb-4 min-w-0">
         {COLUMNS.map(col => {
-          // In backend: Planning, Active, At Risk, Completed (or AtRisk)
           const columnProjects = projects.filter(p => {
-             const stat = p.status?.replace(" ", "") || "";
-             const colStat = col.dbStatus.replace(" ", "");
-             return stat === colStat;
+             return normalizeStatus(p.status) === normalizeStatus(col.dbStatus);
           });
           
           return (
@@ -106,8 +167,10 @@ export default function EmployerProjectsBoard() {
 }
 
 function BoardCard({ project, onClick }) {
-  const isAtRisk = project.status === "AtRisk" || project.status === "At Risk";
-  const isDone = project.status === "Completed" || project.status === "Archived";
+  const projectStatus = getProjectStatusLabel(project.status);
+  const projectType = getProjectTypeLabel(project.type);
+  const isAtRisk = projectStatus === "AtRisk" || projectStatus === "At Risk";
+  const isDone = projectStatus === "Completed" || projectStatus === "Archived";
   
   let glowColor = "rgba(168,85,247,0.5)"; // Purple
   let barColor = "bg-purple-500";
@@ -132,7 +195,7 @@ function BoardCard({ project, onClick }) {
     >
       <div className="flex items-center justify-between mb-3">
         <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold text-gray-400 bg-[#1C212B] border border-[#2D3342] rounded">
-          {project.type || "INTERNAL"}
+          {projectType || "INTERNAL"}
         </span>
         <div className="flex items-center gap-2">
            <span className="text-[10px] text-gray-500 font-mono tracking-wider">ID: {project.id?.slice(0, 3)}</span>

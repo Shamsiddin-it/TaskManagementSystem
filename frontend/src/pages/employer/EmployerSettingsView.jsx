@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5125';
+import {
+  downloadInvoices,
+  getWorkspaceSettings,
+  updateWorkspaceSettings,
+  workspaceAction,
+} from '../../api';
 
 function applyTheme(theme) {
   if (theme === "light") {
@@ -26,11 +30,8 @@ export default function EmployerSettingsView() {
     async function loadSettings() {
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch(`${API_BASE_URL}/api/workspace/settings`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-           const data = await response.json();
+        const data = await getWorkspaceSettings(token);
+        if (data) {
            setSettings({
              profile: data.profile || {},
              teamDefaults: data.teamDefaults || {},
@@ -69,11 +70,10 @@ export default function EmployerSettingsView() {
      setSaving(true);
      const token = localStorage.getItem('token');
      try {
-       await fetch(`${API_BASE_URL}/api/workspace/settings`, {
-         method: 'PUT',
-         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-         body: JSON.stringify(settings)
-       });
+       const updated = await updateWorkspaceSettings(token, settings);
+       if (updated) {
+         setSettings(updated);
+       }
      } catch(err) { }
      setSaving(false);
   };
@@ -81,11 +81,25 @@ export default function EmployerSettingsView() {
   const handleAction = async (endpoint) => {
      const token = localStorage.getItem('token');
      try {
-        await fetch(`${API_BASE_URL}/api/workspace/settings/actions/${endpoint}`, {
-           method: 'POST',
-           headers: { 'Authorization': `Bearer ${token}` }
-        });
+        await workspaceAction(token, `/workspace/settings/actions/${endpoint}`);
      } catch (err) { }
+  };
+
+  const handleDownloadInvoices = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const file = await downloadInvoices(token);
+      if (!file?.content) return;
+
+      const link = document.createElement('a');
+      link.href = `data:${file.contentType || 'text/csv'};base64,${file.content}`;
+      link.download = file.fileName || 'invoices.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('Invoice download failed', err);
+    }
   };
 
   if (loading) {
@@ -290,7 +304,7 @@ export default function EmployerSettingsView() {
                <InputBlock label="Tax ID / VAT Number" value={billing.taxIdOrVatNumber} onChange={e => handleChange('billing', 'taxIdOrVatNumber', e.target.value)} />
             </div>
 
-            <button onClick={() => window.open(`${API_BASE_URL}/api/workspace/settings/export/invoices`)} className="w-full py-3 bg-[#161B22] border border-[#2D3342] hover:bg-[#1C212B] text-white font-medium text-sm rounded-lg transition-colors flex justify-center items-center gap-2">
+            <button onClick={handleDownloadInvoices} className="w-full py-3 bg-[#161B22] border border-[#2D3342] hover:bg-[#1C212B] text-white font-medium text-sm rounded-lg transition-colors flex justify-center items-center gap-2">
                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                Download Past Invoices
             </button>
@@ -385,9 +399,8 @@ export default function EmployerSettingsView() {
                   btnLabel="Delete Organization" 
                   critical
                   action={async () => {
-                     await fetch(`${API_BASE_URL}/api/workspace/settings/actions/close-organization`, { 
-                        method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                     });
+                     const token = localStorage.getItem('token');
+                     await workspaceAction(token, '/workspace/settings/actions/close-organization', 'DELETE');
                   }} 
                />
             </div>

@@ -175,7 +175,15 @@ using (var scope = app.Services.CreateScope())
         await dbContext.Database.MigrateAsync();
     }
 
-    if (!await dbContext.Database.GetPendingMigrationsAsync().ContinueWith(t => t.Result.Any()))
+    var identityTablesExist =
+        await HasTableAsync(dbContext, "AspNetRoles") &&
+        await HasTableAsync(dbContext, "Users");
+
+    if (!identityTablesExist)
+    {
+        app.Logger.LogWarning("Skipping role/user seeding because the Identity tables do not exist yet. Apply the database migrations first.");
+    }
+    else if (!(await dbContext.Database.GetPendingMigrationsAsync()).Any())
     {
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         await DefaultRoles.SeedRoles(roleManager);
@@ -185,7 +193,7 @@ using (var scope = app.Services.CreateScope())
     }
     else
     {
-        app.Logger.LogWarning("Skipping role/user seeding because the Identity tables do not exist yet. Apply the database migrations first.");
+        app.Logger.LogWarning("Skipping role/user seeding because there are pending migrations for the current database.");
     }
 }
 

@@ -27,9 +27,11 @@ internal static class ServiceMappingHelper
         {
             Id = project.Id,
             Title = project.Title,
-            Description = project.Description,
+            Description = project.Description ?? string.Empty,
             EmployerId = project.EmployerId,
-            Employer = ToGetUserDto(project.Employer),
+            Employer = project.Employer is null
+                ? new Application.DTOs.GetUserDto { Id = project.EmployerId }
+                : ToGetUserDto(project.Employer),
             Status = project.Status.ToString(),
             GlobalDeadline = project.GlobalDeadline,
             CreatedAt = project.CreatedAt,
@@ -43,7 +45,7 @@ internal static class ServiceMappingHelper
         {
             Id = project.Id,
             Title = project.Title,
-            Description = project.Description,
+            Description = project.Description ?? string.Empty,
             EmployerId = project.EmployerId,
             Employer = employerDto,
             Status = project.Status.ToString(),
@@ -63,7 +65,7 @@ internal static class ServiceMappingHelper
             Name = team.Name,
             TeamLeadId = team.TeamLeadId,
             TeamLead = teamLeadDto,
-            Description = team.Description,
+            Description = team.Description ?? string.Empty,
             CreatedAt = team.CreatedAt
         };
     }
@@ -74,7 +76,7 @@ internal static class ServiceMappingHelper
         {
             Id = task.Id,
             Title = task.Title,
-            Description = task.Description,
+            Description = task.Description ?? string.Empty,
             TeamId = task.TeamId,
             Team = teamDto,
             AssignedTo = task.AssignedToId,
@@ -135,8 +137,8 @@ internal static class ServiceMappingHelper
         {
             Id = badge.Id,
             Name = badge.Name,
-            Description = badge.Description,
-            Condition = badge.Condition,
+            Description = badge.Description ?? string.Empty,
+            Condition = badge.Condition ?? string.Empty,
             IconUrl = badge.IconUrl,
             CreatedAt = badge.CreatedAt
         };

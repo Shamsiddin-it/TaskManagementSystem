@@ -2,8 +2,15 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5125";
 
 async function request(path, options = {}) {
+  const token = localStorage.getItem("token");
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers || {})
+  };
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers,
     ...options
   });
 
@@ -13,8 +20,13 @@ async function request(path, options = {}) {
 
   const raw = await res.json().catch(() => null);
   const ok = res.ok;
-  const data = raw?.Data ?? null;
-  const message = raw?.Description?.join(" ") || raw?.Description || null;
+  const data = raw?.data ?? raw?.Data ?? raw ?? null;
+  const message =
+    raw?.description?.join(" ") ||
+    raw?.description ||
+    raw?.Description?.join(" ") ||
+    raw?.Description ||
+    null;
 
   return { ok, data, raw, message, status: res.status };
 }

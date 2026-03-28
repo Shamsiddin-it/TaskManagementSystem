@@ -2,10 +2,15 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { doLogout } from '../api/workspaceApi.js';
 
-const role = () => (localStorage.getItem('nexus_role') || '').toLowerCase();
+function getRole() {
+  return (localStorage.getItem('nexus_role') || '')
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '');
+}
 
 export default function WorkspaceLayout() {
   const navigate = useNavigate();
+  const isTeamLead = getRole() === 'teamlead';
 
   const handleLogout = () => {
     doLogout();
@@ -49,24 +54,26 @@ export default function WorkspaceLayout() {
           </div>
 
           {/* Team Lead extra nav — visible to all, TL-specific */}
-          <div className="flex flex-col gap-1">
-            <span className="label-caps px-3 mb-2">Team Lead</span>
-            <SideNavItem to="/workspace/team" label="Team directory">
-              <TeamIcon />
-            </SideNavItem>
-            <SideNavItem to="/team-lead/sprint-board" label="Sprint board">
-              <BoardIcon />
-            </SideNavItem>
-            <SideNavItem to="/team-lead/sprint-retro" label="Sprint retro">
-              <RetroIcon />
-            </SideNavItem>
-            <SideNavItem to="/team-lead/analytics" label="Analytics">
-              <ChartIcon />
-            </SideNavItem>
-            <SideNavItem to="/team-lead/backlog" label="TL Backlog">
-              <ListIcon />
-            </SideNavItem>
-          </div>
+          {isTeamLead ? (
+            <div className="flex flex-col gap-1">
+              <span className="label-caps px-3 mb-2">Team Lead</span>
+              <SideNavItem to="/workspace/team" label="Team directory">
+                <TeamIcon />
+              </SideNavItem>
+              <SideNavItem to="/team-lead/sprint-board" label="Sprint board">
+                <BoardIcon />
+              </SideNavItem>
+              <SideNavItem to="/team-lead/sprint-retro" label="Sprint retro">
+                <RetroIcon />
+              </SideNavItem>
+              <SideNavItem to="/team-lead/analytics" label="Analytics">
+                <ChartIcon />
+              </SideNavItem>
+              <SideNavItem to="/team-lead/backlog" label="TL Backlog">
+                <ListIcon />
+              </SideNavItem>
+            </div>
+          ) : null}
 
           {/* System */}
           <div className="flex flex-col gap-1 mt-auto">

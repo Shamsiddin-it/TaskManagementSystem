@@ -21,9 +21,13 @@ async function apiFetch(path, options = {}) {
   });
   if (!res.ok) return null;
   const body = await res.json();
-  // Backend wraps data in { date: T } for list/detail endpoints
-  if (body && 'date' in body) return body.date;
-  return body; // some endpoints return flat objects
+  if (body && typeof body === 'object') {
+    if ('data' in body) return body.data;
+    if ('Data' in body) return body.Data;
+    if ('date' in body) return body.date;
+  }
+
+  return body;
 }
 
 // ─── Focus Sessions ──────────────────────────────────────────────────────────

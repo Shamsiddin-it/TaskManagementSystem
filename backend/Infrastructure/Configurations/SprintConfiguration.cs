@@ -8,7 +8,8 @@ public sealed class SprintConfiguration : IEntityTypeConfiguration<Sprint>
 {
     public void Configure(EntityTypeBuilder<Sprint> builder)
     {
-        builder.ToTable("Sprints");
+        builder.ToTable("Sprints", table =>
+            table.HasCheckConstraint("CK_Sprints_EndDateAfterStartDate", "\"EndDate\" > \"StartDate\""));
 
         builder.HasKey(x => x.Id);
 
@@ -46,8 +47,6 @@ public sealed class SprintConfiguration : IEntityTypeConfiguration<Sprint>
 
         builder.HasIndex(x => new { x.TeamId, x.Number })
             .IsUnique();
-
-        builder.HasCheckConstraint("CK_Sprints_EndDateAfterStartDate", "\"EndDate\" > \"StartDate\"");
 
         builder.HasOne(x => x.Team)
             .WithMany()

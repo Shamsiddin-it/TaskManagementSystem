@@ -4,6 +4,38 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Square, AlertCircle, Check, MoreVertical, Layers, Plus } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5125';
+const TASK_STATUS = {
+  TODO: 'Todo',
+  IN_PROGRESS: 'InProgress',
+  DONE: 'Done',
+  BLOCKED: 'Blocked',
+};
+
+function getStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function unwrapBody(body) {
+  return body?.data ?? body?.Data ?? body ?? null;
+}
+
+function unwrapItems(body) {
+  const payload = unwrapBody(body);
+  return payload?.items ?? payload?.Items ?? payload ?? [];
+}
+
+function normalizeTaskStatus(status) {
+  if (status === 1 || status === 'Todo') return TASK_STATUS.TODO;
+  if (status === 2 || status === 'InProgress') return TASK_STATUS.IN_PROGRESS;
+  if (status === 3 || status === 'Review') return 'Review';
+  if (status === 4 || status === 'Done') return TASK_STATUS.DONE;
+  if (status === 5 || status === 'Blocked') return TASK_STATUS.BLOCKED;
+  return TASK_STATUS.TODO;
+}
 
 export default function WorkerWorkspace() {
   const navigate = useNavigate();
@@ -20,23 +52,33 @@ export default function WorkerWorkspace() {
   useEffect(() => {
     async function loadData() {
       const token = localStorage.getItem('token');
+      const currentUser = getStoredUser();
+      const currentUserId = currentUser?.userId ?? currentUser?.id ?? null;
+
       try {
         const [statsRes, taskRes, actRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/worker-dashboard/stats`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/tasks`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(
+            `${API_BASE_URL}/api/tasks${currentUserId ? `?AssignedToUserId=${encodeURIComponent(currentUserId)}` : ''}`,
+            { headers: { 'Authorization': `Bearer ${token}` } }
+          ),
           fetch(`${API_BASE_URL}/api/worker-dashboard/activities`, { headers: { 'Authorization': `Bearer ${token}` } }),
         ]);
         
-        if (statsRes.ok) setStats(await statsRes.json());
+        if (statsRes.ok) {
+          setStats(await statsRes.json());
+        }
         if (taskRes.ok) {
            const d = await taskRes.json();
-           const items = d.items || d.data || d || [];
+           const items = unwrapItems(d);
            setTasks(items);
            setHasRealTasks(items.length > 0);
         } else {
            setHasRealTasks(false);
         }
-        if (actRes.ok) setActivities(await actRes.json());
+        if (actRes.ok) {
+          setActivities(await actRes.json());
+        }
       } catch (err) {
         setHasRealTasks(false);
       }
@@ -47,29 +89,37 @@ export default function WorkerWorkspace() {
 
   const handleTaskAction = async (taskId, action) => {
     const token = localStorage.getItem('token');
+    const currentUser = getStoredUser();
+    const currentUserId = currentUser?.userId ?? currentUser?.id ?? null;
     
     let endpoint = "";
     let method = "PATCH";
-    if (action === "start") endpoint = `/api/tasks/${taskId}/status?status=InProgress`;
-    if (action === "stop") endpoint = `/api/tasks/${taskId}/status?status=Todo`;
-    if (action === "complete") endpoint = `/api/tasks/${taskId}/status?status=Completed`;
+    if (action === "start") endpoint = `/api/tasks/${taskId}/status?status=${TASK_STATUS.IN_PROGRESS}`;
+    if (action === "stop") endpoint = `/api/tasks/${taskId}/status?status=${TASK_STATUS.TODO}`;
+    if (action === "complete") endpoint = `/api/tasks/${taskId}/status?status=${TASK_STATUS.DONE}`;
     if (action === "block") endpoint = `/api/tasks/${taskId}/blocked?isBlocked=true&reason=User+Requested`;
 
     try {
       await fetch(`${API_BASE_URL}${endpoint}`, { method, headers: { 'Authorization': `Bearer ${token}` }});
       
-      if (action === "start") {
+      if (action === "start" && currentUserId) {
          await fetch(`${API_BASE_URL}/api/focussession/start`, { 
            method: 'POST', 
            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-           body: JSON.stringify({ taskId })
+           body: JSON.stringify({ taskId, userId: currentUserId })
          });
       }
       
       if (['complete', 'block'].includes(action)) {
          setTasks(t => t.filter(x => x.id !== taskId));
       } else {
-         setTasks(prev => prev.map(t => t.id === taskId ? {...t, status: action === 'start' ? 'InProgress' : 'Todo'} : t)); 
+         setTasks(prev =>
+           prev.map(t =>
+             t.id === taskId
+               ? { ...t, status: action === 'start' ? TASK_STATUS.IN_PROGRESS : TASK_STATUS.TODO }
+               : t
+           )
+         ); 
       }
     } catch (err) {}
   };
@@ -77,19 +127,39 @@ export default function WorkerWorkspace() {
   const handleAddTask = async () => {
     if (!newTaskTitle.trim()) return;
     const token = localStorage.getItem('token');
+    const currentUser = getStoredUser();
+    const currentUserId = currentUser?.userId ?? currentUser?.id ?? null;
+    const currentTeamId =
+      tasks.find(task => task?.teamId)?.teamId ??
+      tasks.find(task => task?.TeamId)?.TeamId ??
+      null;
+
+    if (!currentUserId || !currentTeamId) {
+      return;
+    }
+
     try {
       const res = await fetch(`${API_BASE_URL}/api/tasks`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTaskTitle, description: '', priority: 0, status: 0 })
+        body: JSON.stringify({
+          title: newTaskTitle,
+          description: '',
+          teamId: currentTeamId,
+          createdBy: currentUserId,
+          status: TASK_STATUS.TODO,
+          priority: 'Medium'
+        })
       });
       if (res.ok) {
         setNewTaskTitle('');
-        // Reload tasks
-        const taskRes = await fetch(`${API_BASE_URL}/api/tasks`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const taskRes = await fetch(
+          `${API_BASE_URL}/api/tasks?AssignedToUserId=${encodeURIComponent(currentUserId)}`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
         if (taskRes.ok) {
           const d = await taskRes.json();
-          const items = d.items || d.data || d || [];
+          const items = unwrapItems(d);
           setTasks(items);
           setHasRealTasks(items.length > 0);
         }
@@ -351,7 +421,8 @@ function StatCard({ title, value, sub, subColor }) {
 }
 
 function TaskCard({ task, action, onOpen }) {
-   const isInProgress = task.status === 'InProgress' || task.status === 1;
+   const status = normalizeTaskStatus(task.status);
+   const isInProgress = status === TASK_STATUS.IN_PROGRESS;
    const priorityMap = { 0: 'Low', 1: 'Medium', 2: 'High', Low: 'Low', Medium: 'Medium', High: 'High' };
    const priority = priorityMap[task.priority] || 'Medium';
    

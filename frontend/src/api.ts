@@ -6,17 +6,19 @@ import type {
   ProjectDto,
 } from './types'
 
-const apiBase = import.meta.env.VITE_API_BASE_URL ?? '/api'
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5125'
+const apiRoot = `${apiBaseUrl.replace(/\/+$/, '')}/api`
 
 async function parseResponse<T>(response: Response) {
   if (!response.ok) return null
   const payload = (await response.json()) as ApiResponse<T>
-  return payload.date
+  return payload.data
 }
 
 export function logout() {
   localStorage.removeItem('token')
   localStorage.removeItem('user')
+  localStorage.removeItem('nexus_role')
   window.location.href = '/login'
 }
 
@@ -26,7 +28,7 @@ export function getCurrentUser() {
 }
 
 export async function registerEmployer(body: { fullName: string; email: string; password: string }) {
-  const response = await fetch(`${apiBase}/auth/register/employer`, {
+  const response = await fetch(`${apiRoot}/Auth/register/employer`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -36,7 +38,7 @@ export async function registerEmployer(body: { fullName: string; email: string; 
 }
 
 export async function loginEmployer(body: { email: string; password: string }) {
-  const response = await fetch(`${apiBase}/auth/login`, {
+  const response = await fetch(`${apiRoot}/Auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -46,7 +48,7 @@ export async function loginEmployer(body: { email: string; password: string }) {
 }
 
 export async function getProjects(token: string) {
-  const response = await fetch(`${apiBase}/projects`, {
+  const response = await fetch(`${apiRoot}/projects`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -54,7 +56,7 @@ export async function getProjects(token: string) {
 }
 
 export async function getProjectById(token: string, projectId: string) {
-  const response = await fetch(`${apiBase}/projects/${projectId}`, {
+  const response = await fetch(`${apiRoot}/projects/${projectId}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -62,7 +64,7 @@ export async function getProjectById(token: string, projectId: string) {
 }
 
 export async function updateProject(token: string, projectId: string, body: object) {
-  const response = await fetch(`${apiBase}/projects/${projectId}`, {
+  const response = await fetch(`${apiRoot}/projects/${projectId}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -75,7 +77,7 @@ export async function updateProject(token: string, projectId: string, body: obje
 }
 
 export async function createProject(token: string, body: object) {
-  const response = await fetch(`${apiBase}/projects`, {
+  const response = await fetch(`${apiRoot}/projects`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -88,7 +90,7 @@ export async function createProject(token: string, body: object) {
 }
 
 export async function getNotifications(token: string) {
-  const response = await fetch(`${apiBase}/employer/notifications`, {
+  const response = await fetch(`${apiRoot}/employer/notifications`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -96,7 +98,7 @@ export async function getNotifications(token: string) {
 }
 
 export async function getWorkspaceOverview(token: string) {
-  const response = await fetch(`${apiBase}/workspace/overview`, {
+  const response = await fetch(`${apiRoot}/workspace/overview`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -111,7 +113,7 @@ export async function getWorkspaceOverview(token: string) {
 }
 
 export async function getWorkspaceSettings(token: string) {
-  const response = await fetch(`${apiBase}/workspace/settings`, {
+  const response = await fetch(`${apiRoot}/workspace/settings`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -166,7 +168,7 @@ export async function getWorkspaceSettings(token: string) {
 }
 
 export async function updateWorkspaceSettings(token: string, body: object) {
-  const response = await fetch(`${apiBase}/workspace/settings`, {
+  const response = await fetch(`${apiRoot}/workspace/settings`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -226,7 +228,7 @@ export async function updateWorkspaceSettings(token: string, body: object) {
 }
 
 export async function workspaceAction(token: string, path: string, method: 'POST' | 'DELETE' = 'POST') {
-  const response = await fetch(`${apiBase}${path}`, {
+  const response = await fetch(`${apiRoot}${path}`, {
     method,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -238,7 +240,7 @@ export async function workspaceAction(token: string, path: string, method: 'POST
 }
 
 export async function integrationAction(token: string, key: string, action: string) {
-  const response = await fetch(`${apiBase}/workspace/settings/integrations/${key}`, {
+  const response = await fetch(`${apiRoot}/workspace/settings/integrations/${key}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -298,7 +300,7 @@ export async function integrationAction(token: string, key: string, action: stri
 }
 
 export async function downloadInvoices(token: string) {
-  const response = await fetch(`${apiBase}/workspace/settings/export/invoices`, {
+  const response = await fetch(`${apiRoot}/workspace/settings/export/invoices`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -310,7 +312,7 @@ export async function downloadInvoices(token: string) {
 }
 
 export async function getUsers(token: string) {
-  const response = await fetch(`${apiBase}/users`, {
+  const response = await fetch(`${apiRoot}/users`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -329,7 +331,7 @@ export async function getUsers(token: string) {
 }
 
 export async function createUser(token: string, body: object) {
-  const response = await fetch(`${apiBase}/users`, {
+  const response = await fetch(`${apiRoot}/users`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -342,7 +344,7 @@ export async function createUser(token: string, body: object) {
 }
 
 export async function getReports(token: string) {
-  const response = await fetch(`${apiBase}/reports/dashboard`, {
+  const response = await fetch(`${apiRoot}/reports/dashboard`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -354,7 +356,7 @@ export async function getReports(token: string) {
 }
 
 export async function getProjectStats(token: string, projectId: string) {
-  const response = await fetch(`${apiBase}/projects/${projectId}/stats`, {
+  const response = await fetch(`${apiRoot}/projects/${projectId}/stats`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -370,7 +372,7 @@ export async function getProjectStats(token: string, projectId: string) {
 }
 
 export async function getProjectMembers(token: string, projectId: string) {
-  const response = await fetch(`${apiBase}/projects/${projectId}/members`, {
+  const response = await fetch(`${apiRoot}/projects/${projectId}/members`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -385,7 +387,7 @@ export async function getProjectMembers(token: string, projectId: string) {
 }
 
 export async function addProjectMember(token: string, projectId: string, body: object) {
-  const response = await fetch(`${apiBase}/projects/${projectId}/members`, {
+  const response = await fetch(`${apiRoot}/projects/${projectId}/members`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -398,7 +400,7 @@ export async function addProjectMember(token: string, projectId: string, body: o
 }
 
 export async function getProjectTimeline(token: string, projectId: string) {
-  const response = await fetch(`${apiBase}/projects/${projectId}/timeline`, {
+  const response = await fetch(`${apiRoot}/projects/${projectId}/timeline`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -414,7 +416,7 @@ export async function getProjectTimeline(token: string, projectId: string) {
 }
 
 export async function getProjectRisks(token: string, projectId: string) {
-  const response = await fetch(`${apiBase}/projects/${projectId}/risks`, {
+  const response = await fetch(`${apiRoot}/projects/${projectId}/risks`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -428,7 +430,7 @@ export async function getProjectRisks(token: string, projectId: string) {
 }
 
 export async function getProjectBudgetHistory(token: string, projectId: string) {
-  const response = await fetch(`${apiBase}/budget/projects/${projectId}`, {
+  const response = await fetch(`${apiRoot}/budget/projects/${projectId}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -436,7 +438,7 @@ export async function getProjectBudgetHistory(token: string, projectId: string) 
 }
 
 export async function markAllNotifications(token: string) {
-  const response = await fetch(`${apiBase}/employer/notifications/read-all`, {
+  const response = await fetch(`${apiRoot}/employer/notifications/read-all`, {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -448,7 +450,7 @@ export async function markAllNotifications(token: string) {
 }
 
 export async function getBudget(token: string) {
-  const response = await fetch(`${apiBase}/budget/org`, {
+  const response = await fetch(`${apiRoot}/budget/org`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
