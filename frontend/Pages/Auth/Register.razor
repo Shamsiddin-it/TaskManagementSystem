@@ -12,8 +12,12 @@
 
     <EditForm Model="_model" OnValidSubmit="SubmitAsync">
         <label class="nx-field">
-            <span>Full name</span>
-            <InputText @bind-Value="_model.FullName" class="nx-input" autocomplete="name" />
+            <span>First name</span>
+            <InputText @bind-Value="_model.FirstName" class="nx-input" autocomplete="given-name" />
+        </label>
+        <label class="nx-field">
+            <span>Last name</span>
+            <InputText @bind-Value="_model.LastName" class="nx-input" autocomplete="family-name" />
         </label>
         <label class="nx-field">
             <span>Email</span>
@@ -61,9 +65,9 @@
 
     private async Task SubmitAsync()
     {
-        if (string.IsNullOrWhiteSpace(_model.FullName) || string.IsNullOrWhiteSpace(_model.Email) || string.IsNullOrWhiteSpace(_model.Password))
+        if (string.IsNullOrWhiteSpace(_model.FirstName) || string.IsNullOrWhiteSpace(_model.Email) || string.IsNullOrWhiteSpace(_model.Password))
         {
-            _error = "All fields are required.";
+            _error = "First name, Email, and Password are required.";
             return;
         }
 
@@ -73,17 +77,27 @@
         {
             var req = new RegisterRequest
             {
-                FullName = _model.FullName.Trim(),
+                FirstName = _model.FirstName.Trim(),
+                LastName = _model.LastName?.Trim() ?? string.Empty,
                 Email = _model.Email.Trim(),
                 Password = _model.Password,
                 Role = _model.Role
             };
 
-            var (ok, msg) = await Auth.RegisterAsync(req);
+            var (ok, msg, role) = await Auth.RegisterAsync(req);
             if (ok)
-                Nav.NavigateTo("/workspace/today", replace: true);
+            {
+                if (role == "Employer")
+                    Nav.NavigateTo("/employer/dashboard", replace: true);
+                else if (role == "Team Lead")
+                    Nav.NavigateTo("/workspace/team", replace: true);
+                else
+                    Nav.NavigateTo("/workspace/today", replace: true);
+            }
             else
+            {
                 _error = msg ?? "Registration failed.";
+            }
         }
         finally
         {
@@ -93,7 +107,8 @@
 
     private sealed class RegisterFormModel
     {
-        public string FullName { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public int Role { get; set; } = 2;

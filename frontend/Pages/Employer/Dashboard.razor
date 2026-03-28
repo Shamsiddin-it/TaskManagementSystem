@@ -1,5 +1,5 @@
 @page "/employer/dashboard"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Employer")]
 @layout EmployerShellLayout
 
 <PageTitle>Employer dashboard — Nexus</PageTitle>

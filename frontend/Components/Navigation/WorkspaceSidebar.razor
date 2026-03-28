@@ -21,6 +21,12 @@
         <NavLink class="nx-nav-link" href="/workspace/end-of-day">
             <span class="nx-nav-icon">✦</span> End of day
         </NavLink>
+        
+        <AuthorizeView Roles="Team Lead">
+            <NavLink class="nx-nav-link" href="/workspace/team">
+                <span class="nx-nav-icon">👥</span> Team directory
+            </NavLink>
+        </AuthorizeView>
 
         <div class="nx-nav-label nx-nav-label-spaced">System</div>
         <NavLink class="nx-nav-link" href="/workspace/notifications">

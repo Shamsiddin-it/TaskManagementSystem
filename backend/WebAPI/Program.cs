@@ -16,7 +16,8 @@ using WebApi.Seeds;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        x => x.MigrationsAssembly("Infrastructure"))
         .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 builder.Services.Configure<EmailSettings>(
@@ -174,7 +175,7 @@ using (var scope = app.Services.CreateScope())
         await dbContext.Database.MigrateAsync();
     }
 
-    if (await HasTableAsync(dbContext, "AspNetRoles") && await HasTableAsync(dbContext, "Users"))
+    if (!await dbContext.Database.GetPendingMigrationsAsync().ContinueWith(t => t.Result.Any()))
     {
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         await DefaultRoles.SeedRoles(roleManager);

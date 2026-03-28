@@ -19,7 +19,7 @@ export type UserSession = {
 export type ApiResponse<T> = {
   statusCode: number
   description: string[]
-  data: T
+  date: T
 }
 
 export type AuthResponseDto = {

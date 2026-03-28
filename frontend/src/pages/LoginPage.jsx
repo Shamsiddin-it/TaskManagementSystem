@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, Github, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Github, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5125';
@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -31,14 +32,17 @@ export default function LoginPage() {
       const data = await response.json();
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data));
+      localStorage.setItem('nexus_role', data.role ?? '');
 
-      // Redirection logic requested by user
-      if (email === 'employer@gmail.com') {
+      // Role-based redirection using role returned from backend
+      const role = (data.role ?? '').toLowerCase();
+      if (role === 'employer') {
         navigate('/employer');
-      } else if (email === 'u9884118@gmail.com') {
+      } else if (role === 'team lead') {
         navigate('/team-lead/sprint-board');
       } else {
-        navigate('/worker');
+        // Workers land on the workspace dashboard
+        navigate('/workspace/today');
       }
     } catch (err) {
       setError(err.message);
@@ -97,13 +101,20 @@ export default function LoginPage() {
                   <Lock className="w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#0D1117] border border-[#30363D] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all placeholder:text-gray-600"
+                  className="w-full bg-[#0D1117] border border-[#30363D] text-white rounded-xl py-3 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all placeholder:text-gray-600"
                   placeholder="••••••••"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
@@ -142,7 +153,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center mt-6 text-gray-500 text-sm">
-          Don't have an account? <a href="#" className="text-blue-500 hover:underline">Request access</a>
+          Don't have an account? <a href="/register" className="text-blue-500 hover:underline">Request access</a>
         </p>
       </motion.div>
     </div>
