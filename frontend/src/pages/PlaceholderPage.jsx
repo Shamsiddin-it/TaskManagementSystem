@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Construction, ArrowLeft } from 'lucide-react';
+import { Construction, ArrowLeft, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { logout } from '../api';
 
 export default function PlaceholderPage({ title }) {
   const navigate = useNavigate();
@@ -20,13 +21,22 @@ export default function PlaceholderPage({ title }) {
           This section of the Nexus platform is currently under development by another team. 
           Please check back later for full functionality.
         </p>
-        <button 
-          onClick={() => navigate('/login')}
-          className="inline-flex items-center gap-2 text-blue-500 hover:text-blue-400 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Login
-        </button>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button 
+            onClick={() => navigate('/login')}
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Login
+          </button>
+          <button 
+            onClick={logout}
+            className="inline-flex items-center gap-2 bg-red-600/10 hover:bg-red-600/20 text-red-500 px-6 py-2.5 rounded-xl border border-red-500/20 transition-all font-medium"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout properly
+          </button>
+        </div>
       </motion.div>
     </div>
   );

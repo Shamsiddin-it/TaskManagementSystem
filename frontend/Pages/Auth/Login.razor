@@ -59,11 +59,20 @@
         _error = null;
         try
         {
-            var (ok, msg) = await Auth.LoginAsync(_model.Email, _model.Password);
+            var (ok, msg, role) = await Auth.LoginAsync(_model.Email, _model.Password);
             if (ok)
-                Nav.NavigateTo("/workspace/today", replace: true);
+            {
+                if (role == "Employer")
+                    Nav.NavigateTo("/employer/dashboard", replace: true);
+                else if (role == "Team Lead")
+                    Nav.NavigateTo("/workspace/team", replace: true);
+                else
+                    Nav.NavigateTo("/workspace/today", replace: true);
+            }
             else
+            {
                 _error = msg ?? "Login failed.";
+            }
         }
         finally
         {

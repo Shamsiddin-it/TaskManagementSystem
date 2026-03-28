@@ -68,7 +68,7 @@ public class AuthController : ControllerBase
         {
             Token = await _tokenService.CreateTokenAsync(user),
             Email = user.Email ?? dto.Email,
-            Role = user.Role.ToString(),
+            Role = GetIdentityRoleName(user.Role),
             UserId = user.Id,
             FullName = user.FullName,
             FirstName = user.FirstName
@@ -126,7 +126,7 @@ public class AuthController : ControllerBase
         {
             Token = await _tokenService.CreateTokenAsync(user),
             Email = user.Email ?? dto.Email,
-            Role = user.Role.ToString(),
+            Role = GetIdentityRoleName(user.Role),
             UserId = user.Id,
             FullName = user.FullName,
             FirstName = user.FirstName
@@ -153,7 +153,7 @@ public class AuthController : ControllerBase
         {
             Token = string.Empty,
             Email = user.Email ?? string.Empty,
-            Role = user.Role.ToString(),
+            Role = GetIdentityRoleName(user.Role),
             UserId = user.Id,
             FullName = user.FullName,
             FirstName = user.FirstName
@@ -250,7 +250,7 @@ public class AuthController : ControllerBase
             return UserRole.TeamLead;
         }
 
-        return UserRole.Worker;
+        return requestedRole;
     }
 
     private static UserRole ResolveLoginRole(string email, UserRole currentRole)
@@ -265,7 +265,7 @@ public class AuthController : ControllerBase
             return UserRole.TeamLead;
         }
 
-        return UserRole.Worker;
+        return currentRole;
     }
 
     private static string GetIdentityRoleName(UserRole role) => role switch

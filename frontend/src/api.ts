@@ -11,7 +11,18 @@ const apiBase = import.meta.env.VITE_API_BASE_URL ?? '/api'
 async function parseResponse<T>(response: Response) {
   if (!response.ok) return null
   const payload = (await response.json()) as ApiResponse<T>
-  return payload.data
+  return payload.date
+}
+
+export function logout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  window.location.href = '/login'
+}
+
+export function getCurrentUser() {
+  const user = localStorage.getItem('user')
+  return user ? JSON.parse(user) : null
 }
 
 export async function registerEmployer(body: { fullName: string; email: string; password: string }) {
