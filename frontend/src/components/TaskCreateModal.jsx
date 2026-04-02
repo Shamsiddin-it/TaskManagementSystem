@@ -1,21 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../lib/api.js";
-import { ACTOR_ID } from "../lib/config.js";
 
 const priorityOptions = [
-  { value: 1, label: "Low" },
-  { value: 2, label: "Medium" },
-  { value: 3, label: "High" },
-  { value: 4, label: "Critical" }
+  { value: "Low", label: "Low" },
+  { value: "Medium", label: "Medium" },
+  { value: "High", label: "High" },
+  { value: "Critical", label: "Critical" }
 ];
 
 const ticketTypeOptions = [
-  { value: 1, label: "Feature" },
-  { value: 2, label: "Bug" },
-  { value: 3, label: "Task" },
-  { value: 4, label: "Docs" },
-  { value: 5, label: "QA" },
-  { value: 6, label: "Infra" }
+  { value: "Feature", label: "Feature" },
+  { value: "Bug", label: "Bug" },
+  { value: "Task", label: "Task" },
+  { value: "Docs", label: "Docs" },
+  { value: "QA", label: "QA" },
+  { value: "Infra", label: "Infra" }
 ];
 
 export default function TaskCreateModal({
@@ -29,9 +28,9 @@ export default function TaskCreateModal({
   const [form, setForm] = useState({
     title: "",
     description: "",
-    assignedToId: teamMembers?.[0]?.UserId || 1,
-    priority: 2,
-    ticketType: 3,
+    assignedToId: teamMembers?.[0]?.UserId || teamMembers?.[0]?.userId || "",
+    priority: "Medium",
+    ticketType: "Task",
     storyPoints: "",
     estimatedHours: "",
     deadline: ""
@@ -41,25 +40,37 @@ export default function TaskCreateModal({
 
   if (!open) return null;
 
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setCurrentUser(JSON.parse(storedUser));
+      }
+    } catch(e) {}
+  }, []);
+
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     const payload = {
-      Title: form.title,
-      Description: form.description || null,
-      TeamId: teamId,
-      AssignedToId: Number(form.assignedToId),
-      CreatedById: ACTOR_ID,
-      SprintId: sprintId ?? null,
-      Priority: Number(form.priority),
-      TicketType: Number(form.ticketType),
-      Deadline: form.deadline ? new Date(form.deadline).toISOString() : null,
-      EstimatedHours: form.estimatedHours
+      title: form.title,
+      description: form.description || null,
+      teamId,
+      assignedTo: form.assignedToId || currentUser?.userId || currentUser?.id || null,
+      createdBy: currentUser?.userId || currentUser?.id || null,
+      sprintId: sprintId ?? null,
+      priority: form.priority,
+      ticketType: form.ticketType,
+      status: "Todo",
+      deadline: form.deadline ? new Date(form.deadline).toISOString() : null,
+      estimatedHours: form.estimatedHours
         ? Number(form.estimatedHours)
         : null,
-      StoryPoints: form.storyPoints ? Number(form.storyPoints) : null
+      storyPoints: form.storyPoints ? Number(form.storyPoints) : null
     };
 
     const res = await api.post("/api/tasks", payload);
@@ -110,12 +121,12 @@ export default function TaskCreateModal({
             >
               {teamMembers?.length ? (
                 teamMembers.map((m) => (
-                  <option key={m.Id} value={m.UserId}>
-                    User #{m.UserId}
+                  <option key={m.userId || m.id} value={m.userId || m.id}>
+                    {m.fullName || m.firstName || `User ${m.userId?.slice(0,5)}`}
                   </option>
                 ))
               ) : (
-                <option value={1}>User #1</option>
+                <option value={currentUser?.userId || currentUser?.id}>Me</option>
               )}
             </select>
             <select

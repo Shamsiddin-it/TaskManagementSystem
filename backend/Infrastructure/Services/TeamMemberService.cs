@@ -35,7 +35,7 @@ public class TeamMemberService : ITeamMemberService
 
             CacheKeyStore.RemoveEntity(_cache, EntityName);
             var idKey = CacheKeyHelper.BuildIdKey(EntityName, entity.Id);
-            var resDto = _mapper.Map<GetTeamMemberDto>(entity);
+            var resDto = await EnrichDtoAsync(_mapper.Map<GetTeamMemberDto>(entity));
             _cache.Set(idKey, resDto, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, idKey);
 
@@ -61,7 +61,7 @@ public class TeamMemberService : ITeamMemberService
             var entity = await _db.TeamMembers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (entity == null) return new Response<GetTeamMemberDto>(HttpStatusCode.NotFound, "not found");
 
-            var dto = _mapper.Map<GetTeamMemberDto>(entity);
+            var dto = await EnrichDtoAsync(_mapper.Map<GetTeamMemberDto>(entity));
             _cache.Set(idKey, dto, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, idKey);
 
@@ -104,7 +104,7 @@ public class TeamMemberService : ITeamMemberService
                 .Take(pagination.PageSize)
                 .ToListAsync();
 
-            var dtoItems = _mapper.Map<List<GetTeamMemberDto>>(items);
+            var dtoItems = await EnrichDtosAsync(_mapper.Map<List<GetTeamMemberDto>>(items));
             var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize);
 
             var result = new PagedResult<GetTeamMemberDto>
@@ -142,7 +142,7 @@ public class TeamMemberService : ITeamMemberService
 
             CacheKeyStore.RemoveEntity(_cache, EntityName);
             var idKey = CacheKeyHelper.BuildIdKey(EntityName, entity.Id);
-            var resDto = _mapper.Map<GetTeamMemberDto>(entity);
+            var resDto = await EnrichDtoAsync(_mapper.Map<GetTeamMemberDto>(entity));
             _cache.Set(idKey, resDto, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, idKey);
 
@@ -214,7 +214,7 @@ public class TeamMemberService : ITeamMemberService
                 .OrderBy(x => x.UserId)
                 .ToListAsync();
 
-            var dtoItems = _mapper.Map<List<GetTeamMemberDto>>(items);
+            var dtoItems = await EnrichDtosAsync(_mapper.Map<List<GetTeamMemberDto>>(items));
             _cache.Set(key, dtoItems, CacheKeyHelper.DefaultOptions());
             CacheKeyStore.Add(EntityName, key);
 
@@ -236,7 +236,7 @@ public class TeamMemberService : ITeamMemberService
 
             if (member == null) return new Response<GetTeamMemberDto>(HttpStatusCode.NotFound, "not found");
 
-            var dto = _mapper.Map<GetTeamMemberDto>(member);
+            var dto = await EnrichDtoAsync(_mapper.Map<GetTeamMemberDto>(member));
             return new Response<GetTeamMemberDto>(HttpStatusCode.OK, "ok", dto);
         }
         catch (Exception ex)
@@ -326,5 +326,38 @@ public class TeamMemberService : ITeamMemberService
         var pct = (int)Math.Round((activeTasks / (double)MaxActiveTasks) * 100);
         member.WeeklyCapacityPct = Math.Max(0, Math.Min(100, pct));
         await _db.SaveChangesAsync();
+    }
+
+    private async Task<GetTeamMemberDto> EnrichDtoAsync(GetTeamMemberDto dto)
+    {
+        var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.UserId);
+        if (user != null)
+        {
+            dto.FullName = user.FullName;
+            dto.AvatarInitials = user.AvatarInitials;
+            dto.AvatarColor = user.AvatarColor;
+        }
+
+        return dto;
+    }
+
+    private async Task<List<GetTeamMemberDto>> EnrichDtosAsync(List<GetTeamMemberDto> dtos)
+    {
+        var userIds = dtos.Select(x => x.UserId).Distinct().ToList();
+        var users = await _db.Users.AsNoTracking()
+            .Where(x => userIds.Contains(x.Id))
+            .ToDictionaryAsync(x => x.Id);
+
+        foreach (var dto in dtos)
+        {
+            if (users.TryGetValue(dto.UserId, out var user))
+            {
+                dto.FullName = user.FullName;
+                dto.AvatarInitials = user.AvatarInitials;
+                dto.AvatarColor = user.AvatarColor;
+            }
+        }
+
+        return dtos;
     }
 }

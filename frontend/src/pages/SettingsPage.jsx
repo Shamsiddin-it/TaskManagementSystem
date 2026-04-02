@@ -1,51 +1,34 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../lib/api.js";
-import { TEAM_ID, ACTOR_ID } from "../lib/config.js";
 import { devRoleLabel } from "../lib/utils.js";
-
-function applyTheme(theme) {
-  if (theme === "light") {
-    document.documentElement.setAttribute("data-theme", "light");
-  } else {
-    document.documentElement.removeAttribute("data-theme");
-  }
-}
+import { useTheme } from "../context/ThemeContext.jsx";
 
 export default function SettingsPage() {
   const location = useLocation();
   const query = new URLSearchParams(location.search);
-  const teamId = Number(query.get("teamId")) || TEAM_ID;
+  const teamId = query.get("teamId") || localStorage.getItem("activeTeamId");
+  const currentUserId = localStorage.getItem("userId") || "";
 
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("nexus_theme") || "dark";
-  });
+  const { theme, toggleTheme } = useTheme();
 
   const [teamInfo, setTeamInfo] = useState(null);
   const [memberCount, setMemberCount] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
-
-  useEffect(() => {
     const load = async () => {
       setLoading(true);
       const res = await api.get(`/api/team-members?TeamId=${teamId}&Page=1&PageSize=100`);
-      const items = res.data?.Items || [];
+      const items = res.data?.Data?.Items ?? res.data?.Items ?? [];
       setMemberCount(items.length);
       setLoading(false);
     };
-    load();
+    if (teamId) load();
+    else setLoading(false);
   }, [teamId]);
 
-  const toggleTheme = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    localStorage.setItem("nexus_theme", next);
-    applyTheme(next);
-  };
+
 
   return (
     <>
@@ -132,8 +115,8 @@ export default function SettingsPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <InfoRow label="Team ID" value={`#${teamId}`} />
-              <InfoRow label="Actor ID (You)" value={`#${ACTOR_ID}`} />
+              <InfoRow label="Team ID" value={teamId ? `#${teamId}` : "None"} />
+              <InfoRow label="Your User ID" value={currentUserId ? `#${currentUserId.slice(0, 8)}…` : "—"} />
               <InfoRow
                 label="Team Members"
                 value={loading ? "Loading…" : memberCount != null ? String(memberCount) : "—"}

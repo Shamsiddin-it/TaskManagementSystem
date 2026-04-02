@@ -11,8 +11,9 @@ const apiBase = import.meta.env.VITE_API_BASE_URL ?? '/api'
 async function parseResponse<T>(response: Response) {
   if (!response.ok) return null
   const payload = (await response.json()) as ApiResponse<T>
-  return payload.date
+  return (payload as any)?.Data ?? (payload as any)?.data ?? (payload as any) ?? null
 }
+
 
 export function logout() {
   localStorage.removeItem('token')

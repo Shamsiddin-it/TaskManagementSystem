@@ -1,6 +1,6 @@
 [ApiController]
 [Route("api")]
-[Authorize(Roles = "Employer")]
+[Authorize(Policy = "EmployerOnly")]
 public class TeamController : ControllerBase
 {
     private readonly ITeamService _service;

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../lib/api.js";
-import { TEAM_ID } from "../lib/config.js";
 import { formatDateShort, statusLabel, priorityClass, priorityLabel, ticketTypeLabel } from "../lib/utils.js";
 
 const ACTION_TYPE_LABELS = {
@@ -68,7 +67,7 @@ function actionColor(type) {
 export default function NotificationsPage() {
   const location = useLocation();
   const query = new URLSearchParams(location.search);
-  const teamId = Number(query.get("teamId")) || TEAM_ID;
+  const teamId = query.get("teamId") || localStorage.getItem("activeTeamId");
 
   const [logs, setLogs] = useState([]);
   const [blockedTasks, setBlockedTasks] = useState([]);
@@ -89,8 +88,8 @@ export default function NotificationsPage() {
       api.get(`/api/tasks/team/${teamId}/blocked?Page=1&PageSize=50`),
     ]);
 
-    setLogs(logRes.data?.Items || logRes.data || []);
-    setBlockedTasks(blockedRes.data?.Items || []);
+    setLogs(logRes.data?.Data?.Items ?? logRes.data?.Items ?? logRes.data ?? []);
+    setBlockedTasks(blockedRes.data?.Data?.Items ?? blockedRes.data?.Items ?? []);
     setLogsLoading(false);
     setBlockedLoading(false);
   };

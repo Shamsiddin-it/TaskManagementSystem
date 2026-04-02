@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '../../context/ThemeContext.jsx';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5125';
 
@@ -14,11 +15,11 @@ function applyTheme(theme) {
 export default function EmployerSettingsView() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [theme, setTheme] = useState(() => localStorage.getItem("nexus_theme") || "dark");
+  const { theme, toggleTheme } = useTheme();
   const [settings, setSettings] = useState(null);
 
   useEffect(() => {
-    applyTheme(theme);
+    // Theme is managed globally by ThemeContext
   }, [theme]);
 
   // Load actual backend details
@@ -48,11 +49,8 @@ export default function EmployerSettingsView() {
     loadSettings();
   }, []);
 
-  const toggleTheme = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    localStorage.setItem("nexus_theme", next);
-    applyTheme(next);
+  const toggleThemeLocal = () => {
+    toggleTheme();
   };
 
   const handleChange = (section, field, value) => {
@@ -176,7 +174,7 @@ export default function EmployerSettingsView() {
                  </div>
               </div>
               <button
-                onClick={toggleTheme}
+                onClick={toggleThemeLocal}
                 className="relative w-14 h-7 rounded-full transition-colors focus:outline-none bg-purple-500/20 border border-purple-500/50"
               >
                 <div

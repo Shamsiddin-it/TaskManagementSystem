@@ -5,9 +5,16 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Domain.Models;
+using Infrastructure.Data;
+using Infrastructure.DTOs;
+using Microsoft.Extensions.Configuration;
+using Domain.Enums;
+
+namespace Infrastructure.Services;
 
 public class AuthService : IAuthService
 {
+
     private readonly ApplicationDbContext _db;
     private readonly IConfiguration _configuration;
 
@@ -46,9 +53,11 @@ public class AuthService : IAuthService
             var result = new AuthResponseDto
             {
                 Token = GenerateJwt(user),
-                Role = user.Role.ToString(),
+                Email = user.Email,
+                Role = MapRole(user.Role),
                 UserId = user.Id,
-                FirstName = user.FirstName
+                FirstName = user.FirstName,
+                FullName = user.FullName
             };
 
             return new Response<AuthResponseDto>(
@@ -80,12 +89,24 @@ public class AuthService : IAuthService
             user.OnlineStatus = OnlineStatus.Online;
             await _db.SaveChangesAsync();
 
+            Guid? teamId = null;
+            if (user.Role == UserRole.TeamLead)
+            {
+                teamId = await _db.Teams
+                    .Where(t => t.TeamLeadId == user.Id)
+                    .Select(t => (Guid?)t.Id)
+                    .FirstOrDefaultAsync();
+            }
+
             var result = new AuthResponseDto
             {
                 Token = GenerateJwt(user),
-                Role = user.Role.ToString(),
+                Email = user.Email,
+                Role = MapRole(user.Role),
                 UserId = user.Id,
-                FullName = user.FullName
+                FirstName = user.FirstName,
+                FullName = user.FullName,
+                TeamId = teamId
             };
 
             return new Response<AuthResponseDto>(
@@ -129,4 +150,11 @@ public class AuthService : IAuthService
             ? $"{parts[0][0]}{parts[^1][0]}".ToUpper()
             : fullName.Length >= 2 ? fullName[..2].ToUpper() : fullName.ToUpper();
     }
+
+    private static string MapRole(UserRole role) => role switch
+    {
+        UserRole.Employer => "Employer",
+        UserRole.TeamLead => "Team Lead",
+        _ => "Worker"
+    };
 }

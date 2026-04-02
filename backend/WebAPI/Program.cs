@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
 using WebApi.EmailService;
 using WebApi.Entities;
 using WebApi.Seeds;
@@ -49,7 +50,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.Services.AddScoped<global::IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -63,6 +69,7 @@ builder.Services.AddScoped<IEmployerNotificationService, EmployerNotificationSer
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IInvitationService, InvitationService>();
 builder.Services.AddScoped<IJoinRequestService, JoinRequestService>();
@@ -127,6 +134,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("EmployerOnly", policy => policy.RequireRole("Employer"));
     options.AddPolicy("TeamLeadOnly", policy => policy.RequireRole("Team Lead"));
     options.AddPolicy("WorkerOnly", policy => policy.RequireRole("Worker"));
+    options.AddPolicy("WorkerOwnsTask", policy => policy.RequireRole("Worker"));
+    options.AddPolicy("TaskParticipant", policy => policy.RequireRole("Worker", "Team Lead"));
 });
 
 builder.Services.AddEndpointsApiExplorer();

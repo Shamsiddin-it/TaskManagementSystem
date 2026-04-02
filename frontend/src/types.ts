@@ -19,7 +19,9 @@ export type UserSession = {
 export type ApiResponse<T> = {
   statusCode: number
   description: string[]
-  date: T
+  /** Backend serializes as 'Data' (capital D) */
+  Data?: T
+  data?: T
 }
 
 export type AuthResponseDto = {
@@ -27,6 +29,8 @@ export type AuthResponseDto = {
   role: string
   userId: string
   fullName: string
+  firstName: string
+  teamId?: string
 }
 
 export type ProjectDto = {

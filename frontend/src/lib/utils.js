@@ -29,6 +29,19 @@ export function clampPct(value) {
 }
 
 export function priorityLabel(priority) {
+  if (typeof priority === "string") {
+    switch (priority.toLowerCase()) {
+      case "low":
+        return "P2";
+      case "medium":
+        return "P1";
+      case "high":
+      case "critical":
+        return "P0";
+      default:
+        return priority;
+    }
+  }
   switch (priority) {
     case 1:
       return "P2";
@@ -44,6 +57,17 @@ export function priorityLabel(priority) {
 }
 
 export function priorityClass(priority) {
+  if (typeof priority === "string") {
+    switch (priority.toLowerCase()) {
+      case "medium":
+        return "medium";
+      case "high":
+      case "critical":
+        return "high";
+      default:
+        return "low";
+    }
+  }
   switch (priority) {
     case 1:
       return "low";
@@ -58,6 +82,21 @@ export function priorityClass(priority) {
 }
 
 export function statusLabel(status) {
+  if (typeof status === "string") {
+    switch (status.toLowerCase()) {
+      case "inprogress":
+      case "in progress":
+        return "In Progress";
+      case "review":
+        return "Review";
+      case "done":
+        return "Done";
+      case "blocked":
+        return "Blocked";
+      default:
+        return "Todo";
+    }
+  }
   switch (status) {
     case 1:
       return "Todo";
@@ -75,6 +114,9 @@ export function statusLabel(status) {
 }
 
 export function ticketTypeLabel(type) {
+  if (typeof type === "string") {
+    return type;
+  }
   switch (type) {
     case 1:
       return "Feature";
@@ -94,6 +136,9 @@ export function ticketTypeLabel(type) {
 }
 
 export function devRoleLabel(role) {
+  if (typeof role === "string") {
+    return role;
+  }
   switch (role) {
     case 1:
       return "Frontend";

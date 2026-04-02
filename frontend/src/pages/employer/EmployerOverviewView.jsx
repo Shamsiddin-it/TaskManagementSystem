@@ -4,6 +4,14 @@ import { getWorkspaceOverview, getProjects, getUsers, getCurrentUser } from '../
 import { Plus, Users as UsersIcon, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+function asList(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.Items)) return payload.Items;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+}
+
 export default function EmployerOverviewView() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -25,8 +33,8 @@ export default function EmployerOverviewView() {
         
         setStats(overviewRes);
         // Only get active projects
-        setProjects((projectsRes || []).filter(p => p.status !== 'Completed' && p.status !== 'Archived').slice(0, 3));
-        setTeam((usersRes || []).slice(0, 5));
+        setProjects(asList(projectsRes).filter(p => p.status !== 'Completed' && p.status !== 'Archived').slice(0, 3));
+        setTeam(asList(usersRes).slice(0, 5));
       } catch (err) {
         console.error("Failed to load overview data", err);
       } finally {

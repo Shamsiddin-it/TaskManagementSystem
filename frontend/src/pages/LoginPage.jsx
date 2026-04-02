@@ -29,10 +29,19 @@ export default function LoginPage() {
         throw new Error('Invalid credentials');
       }
 
-      const data = await response.json();
+      const raw = await response.json();
+      const data = raw?.Data ?? raw?.data ?? raw;
+
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data));
       localStorage.setItem('nexus_role', data.role ?? '');
+      if (data.userId) localStorage.setItem('userId', data.userId);
+
+      if (data.teamId) {
+        localStorage.setItem('activeTeamId', data.teamId);
+      } else {
+        localStorage.removeItem('activeTeamId');
+      }
 
       // Role-based redirection using role returned from backend
       const role = (data.role ?? '').toLowerCase();
@@ -41,8 +50,8 @@ export default function LoginPage() {
       } else if (role === 'team lead') {
         navigate('/team-lead/sprint-board');
       } else {
-        // Workers land on the workspace dashboard
-        navigate('/workspace/today');
+        // Workers land on the regular worker dashboard
+        navigate('/worker/my-tasks');
       }
     } catch (err) {
       setError(err.message);

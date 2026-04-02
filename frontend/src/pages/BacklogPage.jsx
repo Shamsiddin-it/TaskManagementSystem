@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import TaskCreateModal from "../components/TaskCreateModal.jsx";
 import { api } from "../lib/api.js";
-import { TEAM_ID } from "../lib/config.js";
 import { priorityClass } from "../lib/utils.js";
 
 export default function BacklogPage() {
   const location = useLocation();
   const query = new URLSearchParams(location.search);
-  const teamId = Number(query.get("teamId")) || TEAM_ID;
+  const teamId = query.get("teamId") || localStorage.getItem("activeTeamId");
 
   const [backlog, setBacklog] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
@@ -19,23 +18,23 @@ export default function BacklogPage() {
     const backlogRes = await api.get(
       `/api/tasks/team/${teamId}/backlog?Page=1&PageSize=100`
     );
-    setBacklog(backlogRes.data?.Items || []);
+    setBacklog(backlogRes.data?.Data?.Items ?? backlogRes.data?.Items ?? []);
 
     const teamRes = await api.get(
       `/api/team-members?TeamId=${teamId}&Page=1&PageSize=100`
     );
-    setTeamMembers(teamRes.data?.Items || []);
+    setTeamMembers(teamRes.data?.Data?.Items ?? teamRes.data?.Items ?? []);
 
     const sprintRes = await api.get(
       `/api/sprints?TeamId=${teamId}&Page=1&PageSize=50`
     );
-    const sprints = sprintRes.data?.Items || [];
+    const sprints = sprintRes.data?.Data?.Items ?? sprintRes.data?.Items ?? [];
     const planning = sprints.find((s) => s.Status === 1) || sprints[0] || null;
     setNextSprint(planning);
   };
 
   useEffect(() => {
-    loadData();
+    if (teamId) loadData();
   }, [teamId]);
 
   const totalPoints = backlog.reduce((sum, t) => sum + (t.StoryPoints ?? 0), 0);

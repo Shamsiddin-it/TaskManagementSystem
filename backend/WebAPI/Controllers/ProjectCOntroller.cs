@@ -1,6 +1,6 @@
 [ApiController]
 [Route("api/projects")]
-[Authorize(Roles = "Employer")]
+[Authorize(Policy = "EmployerOnly")]
 public class ProjectController : ControllerBase
 {
     private readonly IProjectService _service;

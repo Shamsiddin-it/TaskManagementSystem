@@ -14,10 +14,18 @@ export default function WorkerWorkspace() {
   const [notes, setNotes] = useState('');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [hasRealTasks, setHasRealTasks] = useState(null); // null = unknown, true/false
+  const [currentUser, setCurrentUser] = useState(null);
   
   const [scaleMode, setScaleMode] = useState('focus');
 
   useEffect(() => {
+    try {
+      const rawUser = localStorage.getItem('user');
+      if (rawUser) {
+        setCurrentUser(JSON.parse(rawUser));
+      }
+    } catch {}
+
     async function loadData() {
       const token = localStorage.getItem('token');
       try {
@@ -30,7 +38,16 @@ export default function WorkerWorkspace() {
         if (statsRes.ok) setStats(await statsRes.json());
         if (taskRes.ok) {
            const d = await taskRes.json();
-           const items = d.items || d.data || d || [];
+           const items =
+             d?.Data?.Items ??
+             d?.Data?.items ??
+             d?.data?.Items ??
+             d?.data?.items ??
+             d?.Items ??
+             d?.items ??
+             (Array.isArray(d?.Data) ? d.Data : null) ??
+             (Array.isArray(d?.data) ? d.data : null) ??
+             (Array.isArray(d) ? d : []);
            setTasks(items);
            setHasRealTasks(items.length > 0);
         } else {
@@ -52,8 +69,9 @@ export default function WorkerWorkspace() {
     let method = "PATCH";
     if (action === "start") endpoint = `/api/tasks/${taskId}/status?status=InProgress`;
     if (action === "stop") endpoint = `/api/tasks/${taskId}/status?status=Todo`;
-    if (action === "complete") endpoint = `/api/tasks/${taskId}/status?status=Completed`;
+    if (action === "complete") endpoint = `/api/tasks/${taskId}/status?status=Done`;
     if (action === "block") endpoint = `/api/tasks/${taskId}/blocked?isBlocked=true&reason=User+Requested`;
+    if (action === "reject") endpoint = `/api/tasks/${taskId}/reject?reason=Rejected+by+worker`;
 
     try {
       await fetch(`${API_BASE_URL}${endpoint}`, { method, headers: { 'Authorization': `Bearer ${token}` }});
@@ -66,7 +84,7 @@ export default function WorkerWorkspace() {
          });
       }
       
-      if (['complete', 'block'].includes(action)) {
+      if (['complete', 'block', 'reject'].includes(action)) {
          setTasks(t => t.filter(x => x.id !== taskId));
       } else {
          setTasks(prev => prev.map(t => t.id === taskId ? {...t, status: action === 'start' ? 'InProgress' : 'Todo'} : t)); 
@@ -81,7 +99,15 @@ export default function WorkerWorkspace() {
       const res = await fetch(`${API_BASE_URL}/api/tasks`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTaskTitle, description: '', priority: 0, status: 0 })
+        body: JSON.stringify({
+          title: newTaskTitle,
+          description: '',
+          assignedTo: currentUser?.userId || currentUser?.id || null,
+          createdBy: currentUser?.userId || currentUser?.id || null,
+          priority: 'Medium',
+          ticketType: 'Task',
+          status: 'Todo'
+        })
       });
       if (res.ok) {
         setNewTaskTitle('');
@@ -89,7 +115,16 @@ export default function WorkerWorkspace() {
         const taskRes = await fetch(`${API_BASE_URL}/api/tasks`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (taskRes.ok) {
           const d = await taskRes.json();
-          const items = d.items || d.data || d || [];
+          const items =
+            d?.Data?.Items ??
+            d?.Data?.items ??
+            d?.data?.Items ??
+            d?.data?.items ??
+            d?.Items ??
+            d?.items ??
+            (Array.isArray(d?.Data) ? d.Data : null) ??
+            (Array.isArray(d?.data) ? d.data : null) ??
+            (Array.isArray(d) ? d : []);
           setTasks(items);
           setHasRealTasks(items.length > 0);
         }
@@ -378,11 +413,13 @@ function TaskCard({ task, action, onOpen }) {
                  <button onClick={() => action(task.id, 'stop')} className="flex items-center gap-2 py-1.5 px-4 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 text-xs font-bold transition-all"><Square size={14} /> Stop</button>
                  <button onClick={() => action(task.id, 'complete')} className="flex items-center gap-2 py-1.5 px-4 rounded-lg bg-[#161B22] border border-[#2D3342] text-gray-400 hover:text-white hover:border-gray-500 text-xs font-bold transition-all"><Check size={14} /> Complete</button>
                  <button onClick={() => action(task.id, 'block')} className="flex items-center gap-2 py-1.5 px-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 text-xs font-bold transition-all"><AlertCircle size={14} /> Blocked</button>
+                 <button onClick={() => action(task.id, 'reject')} className="flex items-center gap-2 py-1.5 px-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold transition-all"><AlertCircle size={14} /> Reject</button>
                </>
             ) : (
                <>
                  <button onClick={() => action(task.id, 'start')} className="flex items-center gap-2 py-1.5 px-4 rounded-lg bg-[#1C212B] border border-[#2D3342] text-gray-300 hover:text-white hover:bg-purple-500/20 hover:border-purple-500/40 text-xs font-bold transition-all"><Play size={14} /> Start</button>
                  <button onClick={() => action(task.id, 'complete')} className="flex items-center gap-2 py-1.5 px-4 rounded-lg bg-[#161B22] border border-[#2D3342] text-gray-500 hover:text-white hover:border-gray-500 text-xs font-bold transition-all"><Check size={14} /> Complete</button>
+                 <button onClick={() => action(task.id, 'reject')} className="flex items-center gap-2 py-1.5 px-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold transition-all"><AlertCircle size={14} /> Reject</button>
                </>
             )}
          </div>

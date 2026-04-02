@@ -1,33 +1,35 @@
 using System.Security.Claims;
 using Domain.Enums;
 using Domain.Models;
+using Infrastructure.Data;
+using Infrastructure.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebAPI.Controllers;
+
 
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private const string EmployerEmail = "employer@gmail.com";
-    private const string EmployerPassword = "employer1234";
-    private const string TeamLeadEmail = "u9884118@gmail.com";
-    private const string TeamLeadPassword = "u12345678";
-
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtTokenService _tokenService;
+    private readonly ApplicationDbContext _db;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        IJwtTokenService tokenService)
+        IJwtTokenService tokenService,
+        ApplicationDbContext db)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
+        _db = db;
     }
 
     [HttpPost("register")]
@@ -38,16 +40,13 @@ public class AuthController : ControllerBase
         {
             return Conflict(new { message = "Email already in use." });
         }
-
-        var role = NormalizeRole(dto.Email, dto.Role);
-
         var user = new ApplicationUser
         {
             UserName = dto.Email,
             Email = dto.Email,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
-            Role = role,
+            Role = dto.Role,
             AvatarInitials = GetInitials(dto.FirstName, dto.LastName),
             AvatarColor = GetAvatarColor(dto.Email),
             OnlineStatus = OnlineStatus.Offline,
@@ -95,8 +94,6 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        await EnsureSpecialUsersAsync(dto.Email, dto.Password);
-
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user is null)
         {
@@ -114,13 +111,23 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid email or password." });
         }
 
-        user.Role = ResolveLoginRole(user.Email ?? dto.Email, user.Role);
         user.LastActiveAt = DateTime.UtcNow;
         user.OnlineStatus = OnlineStatus.Online;
         user.UpdatedAt = DateTime.UtcNow;
 
         await EnsureIdentityRoleAsync(user);
         await _userManager.UpdateAsync(user);
+
+        // If team lead, find their team id
+        Guid? teamId = null;
+        if (user.Role == UserRole.TeamLead)
+        {
+            var team = await _db.Teams
+                .Where(t => t.TeamLeadId == user.Id)
+                .Select(t => t.Id)
+                .FirstOrDefaultAsync();
+            if (team != default) teamId = team;
+        }
 
         return Ok(new AuthResponseDto
         {
@@ -129,7 +136,8 @@ public class AuthController : ControllerBase
             Role = GetIdentityRoleName(user.Role),
             UserId = user.Id,
             FullName = user.FullName,
-            FirstName = user.FirstName
+            FirstName = user.FirstName,
+            TeamId = teamId
         });
     }
 
@@ -160,68 +168,6 @@ public class AuthController : ControllerBase
         });
     }
 
-    private async System.Threading.Tasks.Task EnsureSpecialUsersAsync(string email, string password)
-    {
-        if (email.Equals(EmployerEmail, StringComparison.OrdinalIgnoreCase) && password == EmployerPassword)
-        {
-            await EnsureUserExists(email, password, "Employer", "Account", UserRole.Employer);
-            return;
-        }
-
-        if (email.Equals(TeamLeadEmail, StringComparison.OrdinalIgnoreCase) && password == TeamLeadPassword)
-        {
-            await EnsureUserExists(email, password, "Team", "Lead", UserRole.TeamLead);
-        }
-    }
-
-    private async System.Threading.Tasks.Task EnsureUserExists(string email, string password, string firstName, string lastName, UserRole role)
-    {
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user is not null)
-        {
-            user.Role = role;
-            user.FirstName = string.IsNullOrWhiteSpace(user.FirstName) ? firstName : user.FirstName;
-            user.LastName = string.IsNullOrWhiteSpace(user.LastName) ? lastName : user.LastName;
-            user.IsActive = true;
-            user.AvatarInitials ??= GetInitials(user.FirstName, user.LastName);
-            user.AvatarColor ??= GetAvatarColor(email);
-            user.UpdatedAt = DateTime.UtcNow;
-
-            if (!await _userManager.CheckPasswordAsync(user, password))
-            {
-                var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                await _userManager.ResetPasswordAsync(user, resetToken, password);
-            }
-
-            await EnsureIdentityRoleAsync(user);
-            await _userManager.UpdateAsync(user);
-            return;
-        }
-
-        user = new ApplicationUser
-        {
-            UserName = email,
-            Email = email,
-            FirstName = firstName,
-            LastName = lastName,
-            Role = role,
-            AvatarInitials = GetInitials(firstName, lastName),
-            AvatarColor = GetAvatarColor(email),
-            OnlineStatus = OnlineStatus.Offline,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        var createResult = await _userManager.CreateAsync(user, password);
-        if (!createResult.Succeeded)
-        {
-            throw new InvalidOperationException(string.Join("; ", createResult.Errors.Select(static x => x.Description)));
-        }
-
-        await EnsureIdentityRoleAsync(user);
-    }
-
     private async System.Threading.Tasks.Task EnsureIdentityRoleAsync(ApplicationUser user)
     {
         var expectedRole = GetIdentityRoleName(user.Role);
@@ -236,36 +182,6 @@ public class AuthController : ControllerBase
 
             await _userManager.AddToRoleAsync(user, expectedRole);
         }
-    }
-
-    private static UserRole NormalizeRole(string email, UserRole requestedRole)
-    {
-        if (email.Equals(EmployerEmail, StringComparison.OrdinalIgnoreCase))
-        {
-            return UserRole.Employer;
-        }
-
-        if (email.Equals(TeamLeadEmail, StringComparison.OrdinalIgnoreCase))
-        {
-            return UserRole.TeamLead;
-        }
-
-        return requestedRole;
-    }
-
-    private static UserRole ResolveLoginRole(string email, UserRole currentRole)
-    {
-        if (email.Equals(EmployerEmail, StringComparison.OrdinalIgnoreCase))
-        {
-            return UserRole.Employer;
-        }
-
-        if (email.Equals(TeamLeadEmail, StringComparison.OrdinalIgnoreCase))
-        {
-            return UserRole.TeamLead;
-        }
-
-        return currentRole;
     }
 
     private static string GetIdentityRoleName(UserRole role) => role switch

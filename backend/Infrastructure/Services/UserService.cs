@@ -1,12 +1,18 @@
 using System.Net;
 using Domain.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 public class UserService : IUserService
 {
     private readonly ApplicationDbContext _db;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public UserService(ApplicationDbContext db) => _db = db;
+    public UserService(ApplicationDbContext db, UserManager<ApplicationUser> userManager)
+    {
+        _db = db;
+        _userManager = userManager;
+    }
 
     public async Task<Response<List<UserDirectoryDto>>> GetDirectoryAsync(string employerId)
     {
@@ -80,24 +86,53 @@ public class UserService : IUserService
                     HttpStatusCode.Conflict, "Email already in use");
             }
 
+            var firstName = dto.FirstName;
+            var lastName = dto.LastName;
+
+            if ((string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName)) &&
+                !string.IsNullOrWhiteSpace(dto.FullName))
+            {
+                var parts = dto.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                firstName = parts.FirstOrDefault() ?? string.Empty;
+                lastName = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(firstName))
+            {
+                return new Response<UserDirectoryDto>(HttpStatusCode.BadRequest, "First name or full name is required");
+            }
+
             var user = new ApplicationUser
             {
-                Id = Guid.NewGuid().ToString(),
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
+                FirstName = firstName,
+                LastName = lastName,
                 Email = dto.Email,
                 UserName = dto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Role = dto.Role,
-                AvatarInitials = GetInitials(dto.FirstName + " " + dto.LastName),
-                AvatarColor = PickAvatarColor(dto.FirstName + " " + dto.LastName),
+                AvatarInitials = GetInitials($"{firstName} {lastName}".Trim()),
+                AvatarColor = PickAvatarColor($"{firstName} {lastName}".Trim()),
                 OnlineStatus = dto.OnlineStatus,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
 
-            _db.Users.Add(user);
+            var createResult = await _userManager.CreateAsync(user, dto.Password);
+            if (!createResult.Succeeded)
+            {
+                return new Response<UserDirectoryDto>(
+                    HttpStatusCode.BadRequest,
+                    string.Join("; ", createResult.Errors.Select(e => e.Description)));
+            }
+
+            var roleName = dto.Role switch
+            {
+                UserRole.Employer => "Employer",
+                UserRole.TeamLead => "Team Lead",
+                _ => "Worker"
+            };
+
+            await _userManager.AddToRoleAsync(user, roleName);
 
             var skills = (dto.Skills ?? [])
                 .Where(s => !string.IsNullOrWhiteSpace(s))
@@ -121,7 +156,7 @@ public class UserService : IUserService
                 EmployerId = employerId,
                 Type = EmployerNotifType.TeamUpdate,
                 Priority = NotifPriority.Normal,
-                Title = $"{dto.FirstName} {dto.LastName} added to workspace",
+                Title = $"{user.FullName} added to workspace",
                 Body = $"{dto.Role} account created successfully.",
                 ActionLabel = "View Detail",
                 IsRead = false,
@@ -133,7 +168,7 @@ public class UserService : IUserService
             var result = new UserDirectoryDto
             {
                 Id = user.Id,
-                FullName = $"{user.FirstName} {user.LastName}",
+                FullName = user.FullName,
                 Email = user.Email,
                 Role = user.Role.ToString(),
                 OnlineStatus = user.OnlineStatus,

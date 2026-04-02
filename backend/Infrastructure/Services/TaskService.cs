@@ -5,6 +5,8 @@ using AutoMapper;
 using System.Net;
 using System.Threading.Tasks;
 using Domain.Models;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using TaskEntity = Domain.Models.Task;
 
 public class TaskService : ITaskService
@@ -16,14 +18,16 @@ public class TaskService : ITaskService
     private readonly IMemoryCache _cache;
     private readonly ILogger<TaskService> _logger;
     private readonly ITicketCodeGenerator _ticketCodeGenerator;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public TaskService(ApplicationDbContext db, IMapper mapper, IMemoryCache cache, ILogger<TaskService> logger, ITicketCodeGenerator ticketCodeGenerator)
+    public TaskService(ApplicationDbContext db, IMapper mapper, IMemoryCache cache, ILogger<TaskService> logger, ITicketCodeGenerator ticketCodeGenerator, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _mapper = mapper;
         _cache = cache;
         _logger = logger;
         _ticketCodeGenerator = ticketCodeGenerator;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async System.Threading.Tasks.Task<Response<Application.DTOs.GetTaskDto>> CreateAsync(Application.DTOs.CreateTaskDto dto)
@@ -32,11 +36,63 @@ public class TaskService : ITaskService
         {
             if (dto == null) return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.BadRequest, "dto is null");
 
+            var user = _httpContextAccessor.HttpContext?.User;
+            var currentUserId = user?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var role = user?.FindFirstValue(ClaimTypes.Role);
+
+            var assignedToId = dto.AssignedTo ?? dto.AssignedToId ?? currentUserId;
+            var createdById = dto.CreatedById ?? dto.CreatedBy ?? currentUserId;
+
+            if (string.IsNullOrWhiteSpace(createdById))
+                return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.BadRequest, "createdBy is required");
+
+            if (string.IsNullOrWhiteSpace(assignedToId))
+                assignedToId = createdById;
+
+            if (role == "Worker" && currentUserId != assignedToId)
+                return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.Forbidden, "Worker can create tasks only for themselves.");
+
+            var teamId = dto.TeamId;
+            if (teamId == Guid.Empty && !string.IsNullOrWhiteSpace(assignedToId))
+            {
+                teamId = await _db.TeamMembers
+                    .Where(x => x.UserId == assignedToId && x.IsActive)
+                    .Select(x => x.TeamId)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (teamId == Guid.Empty)
+                return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.BadRequest, "teamId is required");
+
+            var team = await _db.Teams.FirstOrDefaultAsync(t => t.Id == teamId);
+            if (team == null)
+                return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.NotFound, "team not found");
+
+            if (role == "Team Lead" && team.TeamLeadId != currentUserId)
+                return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.Forbidden, "You do not have access to this team's tasks.");
+
+            var nextOrderIndex = await _db.Tasks
+                .Where(x => x.TeamId == teamId && !x.IsArchived)
+                .Select(x => (int?)x.OrderIndex)
+                .MaxAsync() ?? 0;
+
+            dto.TeamId = teamId;
+            dto.AssignedTo = assignedToId;
+            dto.AssignedToId = assignedToId;
+            dto.CreatedBy = createdById;
+            dto.CreatedById = createdById;
+            dto.OrderIndex = dto.OrderIndex > 0 ? dto.OrderIndex : nextOrderIndex + 1;
+
             var entity = _mapper.Map<TaskEntity>(dto);
             entity.TicketCode = await _ticketCodeGenerator.GenerateTicketCodeAsync(dto.TeamId, TicketType.Task);
             entity.Status = TaskStatus.Todo;
             entity.IsBlocked = false;
             entity.IsArchived = false;
+            entity.TicketType = string.IsNullOrWhiteSpace(dto.TicketType) || !Enum.TryParse<TicketType>(dto.TicketType, true, out var ticketType)
+                ? TicketType.Task
+                : ticketType;
+            entity.SprintId = dto.SprintId;
+            entity.StoryPoints = dto.StoryPoints;
 
             _db.Tasks.Add(entity);
             await _db.SaveChangesAsync();
@@ -113,6 +169,20 @@ public class TaskService : ITaskService
             if (filter.DeadlineTo.HasValue) query = query.Where(x => x.Deadline <= filter.DeadlineTo.Value);
             if (filter.SprintId.HasValue) query = query.Where(x => x.SprintId == filter.SprintId.Value);
 
+            var user = _httpContextAccessor.HttpContext?.User;
+            var userId = user?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var role = user?.FindFirstValue(ClaimTypes.Role);
+
+            if (role == "Worker")
+            {
+                query = query.Where(x => x.AssignedToId == userId);
+            }
+            else if (role == "Team Lead")
+            {
+                var myTeamIds = await _db.Teams.Where(t => t.TeamLeadId == userId).Select(t => t.Id).ToListAsync();
+                query = query.Where(x => myTeamIds.Contains(x.TeamId));
+            }
+
             var totalCount = await query.CountAsync();
             var items = await query
                 .OrderBy(x => x.OrderIndex)
@@ -150,8 +220,17 @@ public class TaskService : ITaskService
         {
             if (dto == null) return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.BadRequest, "dto is null");
 
-            var entity = await _db.Tasks.FirstOrDefaultAsync(x => x.Id == id);
+            var entity = await _db.Tasks.Include(t => t.Team).FirstOrDefaultAsync(x => x.Id == id);
             if (entity == null) return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.NotFound, "not found");
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            var userId = user?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var role = user?.FindFirstValue(ClaimTypes.Role);
+
+            if (role == "Team Lead" && entity.Team.TeamLeadId != userId)
+                return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.Forbidden, "You do not have access to this team's tasks.");
+            if (role == "Worker" && entity.AssignedToId != userId)
+                return new Response<Application.DTOs.GetTaskDto>(HttpStatusCode.Forbidden, "You are not assigned to this task.");
 
             if (dto.Title != null) entity.Title = dto.Title;
             if (dto.Description != null) entity.Description = dto.Description;
@@ -217,8 +296,15 @@ public class TaskService : ITaskService
     {
         try
         {
-            var entity = await _db.Tasks.FirstOrDefaultAsync(x => x.Id == id);
+            var entity = await _db.Tasks.Include(t => t.Team).FirstOrDefaultAsync(x => x.Id == id);
             if (entity == null) return new Response<bool>(HttpStatusCode.NotFound, "not found");
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            var userId = user?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var role = user?.FindFirstValue(ClaimTypes.Role);
+
+            if (role == "Worker" && entity.AssignedToId != userId)
+                return new Response<bool>(HttpStatusCode.Forbidden, "You are not assigned to this task. Only the owner can change status.");
 
             entity.Status = status;
             await _db.SaveChangesAsync();
@@ -258,6 +344,22 @@ public class TaskService : ITaskService
             }
 
             IQueryable<TaskEntity> query = _db.Tasks.AsNoTracking().Where(x => x.TeamId == teamId);
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            var userId = user?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var role = user?.FindFirstValue(ClaimTypes.Role);
+
+            if (role == "Team Lead")
+            {
+                var team = await _db.Teams.FindAsync(teamId);
+                if (team?.TeamLeadId != userId)
+                    return new Response<PagedResult<Application.DTOs.GetTaskDto>>(HttpStatusCode.Forbidden, "Not your team.");
+            }
+
+            if (role == "Worker")
+            {
+                query = query.Where(x => x.AssignedToId == userId);
+            }
 
             if (filter.Status.HasValue) query = query.Where(x => x.Status == filter.Status.Value);
             if (filter.AssigneeId != null) query = query.Where(x => x.AssignedToId == filter.AssigneeId);
@@ -532,6 +634,43 @@ public class TaskService : ITaskService
         catch (Exception ex)
         {
             _logger.LogError(ex, "SetBlockedAsync failed");
+            return new Response<bool>(HttpStatusCode.InternalServerError, ex.Message);
+        }
+    }
+
+    public async System.Threading.Tasks.Task<Response<bool>> RejectTaskAsync(Guid id, string actorId, string? reason)
+    {
+        try
+        {
+            var entity = await _db.Tasks.FirstOrDefaultAsync(x => x.Id == id);
+            if (entity == null) return new Response<bool>(HttpStatusCode.NotFound, "not found");
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            var role = user?.FindFirstValue(ClaimTypes.Role);
+
+            if (role == "Worker" && entity.AssignedToId != actorId)
+                return new Response<bool>(HttpStatusCode.Forbidden, "Only the assigned worker can reject this task.");
+
+            entity.Status = TaskStatus.Blocked;
+            entity.IsBlocked = true;
+            entity.BlockedReason = string.IsNullOrWhiteSpace(reason)
+                ? "Rejected by assignee"
+                : $"Rejected by assignee: {reason}";
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            if (entity.SprintId.HasValue)
+            {
+                await RecalculateSprintPointsAsync(entity.SprintId.Value);
+            }
+
+            CacheKeyStore.RemoveEntity(_cache, EntityName);
+            return new Response<bool>(HttpStatusCode.OK, "rejected", true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "RejectTaskAsync failed");
             return new Response<bool>(HttpStatusCode.InternalServerError, ex.Message);
         }
     }

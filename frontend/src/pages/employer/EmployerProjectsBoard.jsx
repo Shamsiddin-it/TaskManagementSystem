@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { getProjects } from '../../api';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import CreateProjectModal from '../../components/employer/CreateProjectModal';
 
 const COLUMNS = [
   { id: 'planning', label: 'PLANNING', dbStatus: 'Planning', color: 'bg-gray-500' },
@@ -11,24 +12,34 @@ const COLUMNS = [
   { id: 'done', label: 'DONE', dbStatus: 'Completed', color: 'bg-green-500' }
 ];
 
+function asList(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.Items)) return payload.Items;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+}
+
 export default function EmployerProjectsBoard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+
+  const fetchProjects = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return navigate('/login');
+    try {
+      const res = await getProjects(token);
+      setProjects(asList(res));
+    } catch (err) {
+      console.error("Failed fetching board", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchProjects() {
-      const token = localStorage.getItem('token');
-      if (!token) return navigate('/login');
-      try {
-        const res = await getProjects(token);
-        setProjects(res || []);
-      } catch (err) {
-        console.error("Failed fetching board", err);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchProjects();
   }, [navigate]);
 
@@ -41,6 +52,16 @@ export default function EmployerProjectsBoard() {
   }
 
   return (
+    <>
+    <CreateProjectModal 
+      open={showModal} 
+      onClose={() => setShowModal(false)}
+      onCreated={() => {
+         setShowModal(false);
+         setLoading(true);
+         fetchProjects();
+      }}
+    />
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -56,7 +77,7 @@ export default function EmployerProjectsBoard() {
              <button className="px-4 py-1.5 text-xs font-medium bg-[#252A36] text-white rounded-md shadow-sm border border-[#2D3342]/50">Board</button>
              <button className="px-4 py-1.5 text-xs font-medium text-gray-400 hover:text-white transition-colors">List View</button>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] text-white rounded-lg text-sm font-medium transition-all">
+          <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] text-white rounded-lg text-sm font-medium transition-all">
             <Plus size={16} />
             Create Project
           </button>
@@ -102,6 +123,7 @@ export default function EmployerProjectsBoard() {
         })}
       </div>
     </motion.div>
+    </>
   );
 }
 

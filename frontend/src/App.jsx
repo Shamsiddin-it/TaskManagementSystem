@@ -2,7 +2,6 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 // Layouts
 import TeamLeadLayout from "./components/TeamLeadLayout.jsx";
-import WorkspaceLayout from "./components/WorkspaceLayout.jsx";
 import EmployerLayout from "./components/employer/EmployerLayout.jsx";
 import WorkerLayout from "./components/worker/WorkerLayout.jsx";
 
@@ -27,18 +26,6 @@ import BacklogPage from "./pages/BacklogPage.jsx";
 import TeamOverviewPage from "./pages/TeamOverviewPage.jsx";
 import NotificationsPage from "./pages/NotificationsPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
-
-// Workspace (Worker + Team Lead shared)
-import WorkspaceDashboardPage from "./pages/workspace/WorkspaceDashboardPage.jsx";
-import TodayPage from "./pages/workspace/TodayPage.jsx";
-import SchedulePage from "./pages/workspace/SchedulePage.jsx";
-import EndOfDayPage from "./pages/workspace/EndOfDayPage.jsx";
-import WorkerNotificationsPage from "./pages/workspace/WorkerNotificationsPage.jsx";
-import WorkerSettingsPage from "./pages/workspace/WorkerSettingsPage.jsx";
-import TaskDetailPage from "./pages/workspace/TaskDetailPage.jsx";
-import WorkspaceBacklogPage from "./pages/workspace/WorkspaceBacklogPage.jsx";
-import WorkspaceActivityPage from "./pages/workspace/WorkspaceActivityPage.jsx";
-import WorkspaceTeamPage from "./pages/workspace/WorkspaceTeamPage.jsx";
 
 // Worker Pages
 import WorkerWorkspace from "./pages/worker/WorkerWorkspace.jsx";
@@ -81,19 +68,7 @@ export default function App() {
         <Route path="/team-lead/settings" element={<SettingsPage />} />
       </Route>
 
-      {/* ─── Workspace (Worker + Team Lead shared) ─── */}
-      <Route element={<WorkspaceLayout />}>
-        <Route path="/workspace" element={<WorkspaceDashboardPage />} />
-        <Route path="/workspace/today" element={<TodayPage />} />
-        <Route path="/workspace/schedule" element={<SchedulePage />} />
-        <Route path="/workspace/end-of-day" element={<EndOfDayPage />} />
-        <Route path="/workspace/notifications" element={<WorkerNotificationsPage />} />
-        <Route path="/workspace/settings" element={<WorkerSettingsPage />} />
-        <Route path="/workspace/tasks/:id" element={<TaskDetailPage />} />
-        <Route path="/workspace/backlog" element={<WorkspaceBacklogPage />} />
-        <Route path="/workspace/activity" element={<WorkspaceActivityPage />} />
-        <Route path="/workspace/team" element={<WorkspaceTeamPage />} />
-      </Route>
+
 
       {/* ─── Worker section ─── */}
       <Route path="/worker" element={<WorkerLayout />}>
@@ -107,8 +82,7 @@ export default function App() {
         <Route path="settings" element={<WorkerSettings />} />
       </Route>
 
-      {/* Legacy worker redirect */}
-      <Route path="/worker-legacy" element={<Navigate to="/workspace/today" replace />} />
+
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/login" replace />} />

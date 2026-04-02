@@ -22,5 +22,6 @@ public interface ITaskService
     System.Threading.Tasks.Task<Response<bool>> ReorderTasksAsync(Guid teamId, List<TaskOrderUpdateDto> updates);
     System.Threading.Tasks.Task<Response<PagedResult<Application.DTOs.GetTaskDto>>> GetBlockedTasksAsync(Guid teamId, PaginationFilter filter);
     System.Threading.Tasks.Task<Response<bool>> SetBlockedAsync(Guid id, bool isBlocked, string? reason);
+    System.Threading.Tasks.Task<Response<bool>> RejectTaskAsync(Guid id, string actorId, string? reason);
     System.Threading.Tasks.Task RecalculateSprintPointsAsync(Guid sprintId);
 }
